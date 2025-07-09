@@ -1,11 +1,20 @@
 const shell = require("terminal-kit").terminal;
-const shellStringWidth = require("terminal-kit").stringWidth;
 const EpubLib = require("epub");
 const { convert } = require("html-to-text");
 
+const fs = require('fs');
+const path = require('path');
+const logPath = path.join(__dirname, 'app.log');
+function log(message) {
+  const timestamp = new Date().toISOString();
+  const line = `[${timestamp}] ${message}\n`;
+  fs.appendFileSync(logPath, line);
+}
+log("START NEW INSTANCE");
+
 const book = new EpubLib("./books/The-White-Company_Conan-Doyle.epub");
 
-const SHELL_HEIGHT_RESERVED = 2; // Number of lines reserved for UI elements, such as the top menu
+const SHELL_HEIGHT_RESERVED = 1; // Number of lines reserved for UI elements, such as the bottom status line
 
 const conversionOptions = {
   // preserveNewlines: true,
@@ -13,27 +22,8 @@ const conversionOptions = {
   wordwrap: null,
 };
 
-const menuItems = [
-  "File",
-  "Edit",
-  "View",
-  "History",
-  "Bookmarks",
-  "Tools",
-  "Help",
-];
-
-const menuOptions = {
-  y: 1, // the menu will be on the top of the terminal
-  // style: shell.inverse,
-  style: shell.blue.bgRed,
-  selectedStyle: shell.dim.blue.bgGreen,
-  align: "center",
-  fillIn: true,
-};
-
-let currentChapterIndex = null;
 let fullChapter = null;
+let currentChapterIndex = null;
 let currentPageText = null;
 let currentLineIndex = null; // If a number we are paging within a chapter
 
@@ -43,33 +33,49 @@ shell.on("resize", (width, height) => {
 
 let exitCount = 0;
 shell.on("key", (name, matches, data) => {
-  // shell("KEY PRESSED", name);
-
+  /* TODO Ideas
+   Help - replace content with hotkeys
+   Table of Contents - also maybe jump?
+   Better status line at the bottom
+   Custom line wrap, toggle on then input field of number which replaces screen.width wrap
+     Do shell.wrapColumn({ width: 30 }); once outside of loadChapter. width = null resets to terminal width
+   slowTyping is a cool function, not sure we have a use
+   Basic search/find with match highlighting in current page (only?)
+   */
   switch (name) {
+    case "HOME":
+      currentLineIndex = null;
+      loadChapter();
+      break;
+    case "END":
+      currentLineIndex = fullChapter?.length - shell.height;
+      loadChapter();
+      break;
     case "PAGE_UP":
+    case "LEFT":
+      // TODO Bit janky going from say chapter 2 to chapter 1, as it jumps to ch1 but line 0 instead of line end-of-ch1 minus shell height
       if (currentLineIndex === null) {
         currentChapterIndex--;
       } else {
         currentLineIndex -= shell.height - SHELL_HEIGHT_RESERVED;
-
-        if (currentLineIndex < 0) {
-          currentLineIndex = null;
-          currentChapterIndex--;
-        }
       }
       loadChapter();
       break;
     case "PAGE_DOWN":
+    case "RIGHT":
       if (currentLineIndex === null) {
         currentChapterIndex++;
       } else {
         currentLineIndex += shell.height - SHELL_HEIGHT_RESERVED;
-
-        if (currentLineIndex > fullChapter?.length) {
-          currentLineIndex = null;
-          currentChapterIndex++;
-        }
       }
+      loadChapter();
+      break;
+    case "UP":
+      currentLineIndex--;
+      loadChapter();
+      break;
+    case "DOWN":
+      currentLineIndex++;
       loadChapter();
       break;
     case "ESCAPE":
@@ -95,11 +101,32 @@ shell.on("key", (name, matches, data) => {
 });
 
 function loadChapter() {
-  const currentChapterId = getChapter()?.id;
-
+  if (currentLineIndex < 0) {
+    currentLineIndex = null;
+    currentChapterIndex--;
+  }
+  if (currentLineIndex >= fullChapter?.length) {
+    currentLineIndex = null;
+    currentChapterIndex++;
+  }
+  
+  if (currentChapterIndex < 0) {
+    log("Cannot page back further, reached zero end of chapter index=" + currentChapterIndex);
+    currentChapterIndex = 0;
+  }
+  else if (currentChapterIndex > book.flow?.length) {
+    log("Ran out of chapters to move to with index=" + currentChapterIndex + " vs " + book.flow.length);
+    currentChapterIndex = book.flow.length;
+  }
+  
+  shell.hideCursor();
+  
+  const currentChapterId = getChapterObj()?.id;
   book.getChapter(currentChapterId, (err, html) => {
     const chapterText = convert(html, conversionOptions);
     fullChapter = shell.str(chapterText)?.split("\n") ?? [];
+    
+    log("Current line index is " + currentLineIndex + " vs count " + fullChapter?.length);
 
     // We need to page within our chapter
     if (fullChapter?.length > shell.height - SHELL_HEIGHT_RESERVED) {
@@ -107,57 +134,37 @@ function loadChapter() {
         currentLineIndex = 0;
       }
 
+      log(`From line index=${currentLineIndex} and to=${currentLineIndex + shell.height - SHELL_HEIGHT_RESERVED} in chapter index=${currentChapterIndex} (${currentChapterId})`);
+      log("First line is: " + fullChapter[0]);
       currentPageText = fullChapter
         .slice(
           currentLineIndex,
           currentLineIndex + shell.height - SHELL_HEIGHT_RESERVED
         )
         .join("\n");
-      // The entire chapter will fit in a single window
-    } else {
+      log("Now converting to text the first line is: " + currentPageText.substring(0, 100));
+    }
+    // The entire chapter will fit in a single window
+    else {
       currentLineIndex = null;
       currentPageText = chapterText;
     }
 
-    // shell.slowTyping(
-    //   currentPageText,
-    //   {
-    //     style: shell.defaultColor,
-    //     flashStyle: shell.brightWhite,
-    //     // flashDelay: 1,
-    //     // delay: 5,
-    //   },
-    //   function () {
-    //     shell.processExit();
-    //   }
-    // );
-    // });
-
     shell.clear();
-    // shell.moveTo(1, 1).cyan(`${currentChapterId}\n\n`);
-
-    shell.singleLineMenu(menuItems, menuOptions, (err, res) => {
-      // console.log("MENU SELECTED callback", res);
-    });
-
-    shell.moveTo(1, 2).wrap(currentPageText);
-
+    shell.wrap(currentPageText);
+    
     statusLine().magenta(
-      "CURRENT PAGE TEXT lineCount=" +
-        fullChapter?.length +
-        ", HEIGHT=" +
-        shell.height +
-        " and calc=" +
-        shellStringWidth(currentPageText),
-      shellStringWidth(currentPageText) / shell.width
+      `Status: w${shell.width}/h${shell.height}, line=${currentLineIndex} of ${fullChapter?.length} in chapter=${currentChapterIndex} (${currentChapterId})`
     );
+    
+    shell.hideCursor();
   });
 
   //shell.spinner();
 }
 
-function getChapter() {
-  return book?.flow?.[currentChapterIndex];
+function getChapterObj() {
+  return book.flow?.[currentChapterIndex];
 }
 
 function statusLine(msg) {
