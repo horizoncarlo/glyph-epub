@@ -3,9 +3,9 @@ const shellStringWidth = require("terminal-kit").stringWidth;
 const EpubLib = require("epub");
 const { convert } = require("html-to-text");
 
-const fs = require('fs');
-const path = require('path');
-const logPath = path.join(__dirname, 'debug.log');
+const fs = require("fs");
+const path = require("path");
+const logPath = path.join(__dirname, "debug.log");
 function debug(message) {
   const timestamp = new Date().toISOString();
   const line = `[${timestamp}] ${message}\n`;
@@ -41,14 +41,15 @@ shell.on("key", (name, matches, data) => {
     loadChapter();
     return;
   }
-  
+
   /* TODO Ideas
+   Fill in README.md
    Table of Contents - also maybe jump? - use a singleColumnMenu
    Better status line at the bottom
    Custom line wrap width, toggle on then input field of number which replaces screen.width wrap
      Do shell.wrapColumn({ width: 30 }); once outside of loadChapter. width = null resets to terminal width
    Loading from in the app (using .fileInput?) and as a command line argument
-   If images / links are parsed consistently try to load them or make them clickable?
+   If images / links are parsed consistently from HTML try to load them or make them clickable?
    */
   switch (name) {
     case "HOME":
@@ -106,31 +107,30 @@ shell.on("key", (name, matches, data) => {
       // TODO Keep Help updated as hotkeys are added
       shell.clear();
       shell.moveTo(1, 2);
-      shell.table( [
-          [ 'Hotkey', 'Functionality' ],
-          [ 'Page Up or Left', 'Up/back a ^/page^' ],
-          [ 'Page Down or Right', 'Down/forward a ^/page^' ],
-          [ 'Up', 'Up a single ^/line^' ],
-          [ 'Down', 'Down a single ^/line^' ],
-          [ 'Home', 'Start of the ^/chapter^' ],
-          [ 'End', 'End of the ^/chapter^' ],
-          [ 'Ctrl+Home', 'Start of the ^/document^' ],
-          [ 'Ctrl+End', 'End of the ^/document^' ],
-          [ 'F or /', 'Find text in the ^/page^' ],
-          [ 'Ctrl+C or Q or Esc', 'Exit the application' ],
-          [ 'H or ?', 'This help - you found it!' ]
-        ], {
-          contentHasMarkup: true,
-          hasBorder: true,
-          borderChars: 'lightRounded',
-          borderAttr: { color: 'blue' },
-          firstRowTextAttr: { bold: true },
-          width: Math.min(80, Math.ceil(shell.width * 0.75)),
-          fit: true   // Activate all expand/shrink + wordWrap
-        }
-      );
-      statusLine().yellow('Press').bold(' any ').yellow('key to return to the document...');
-      
+      shell.table([
+        ["Hotkey", "Functionality"],
+        ["Page Up or Left", "Up/back a ^/page^"],
+        ["Page Down or Right", "Down/forward a ^/page^"],
+        ["Up", "Up a single ^/line^"],
+        ["Down", "Down a single ^/line^"],
+        ["Home", "Start of the ^/chapter^"],
+        ["End", "End of the ^/chapter^"],
+        ["Ctrl+Home", "Start of the ^/document^"],
+        ["Ctrl+End", "End of the ^/document^"],
+        ["F or /", "Find text in the ^/page^"],
+        ["Ctrl+C or Q or Esc", "Exit the application"],
+        ["H or ?", "This help - you found it!"],
+      ], {
+        contentHasMarkup: true,
+        hasBorder: true,
+        borderChars: "lightRounded",
+        borderAttr: { color: "blue" },
+        firstRowTextAttr: { bold: true },
+        width: Math.min(80, Math.ceil(shell.width * 0.75)),
+        fit: true, // Activate all expand/shrink + wordWrap
+      });
+      statusLine().yellow("Press").bold(" any ").yellow("key to return to the document...");
+
       showingHelp = true;
       break;
     case "ESCAPE":
@@ -143,7 +143,7 @@ shell.on("key", (name, matches, data) => {
           .bold(name.charAt(0).toUpperCase() + name.toLowerCase().substring(1))
           .yellow(" again to exit...");
       } else if (exitCount > 1) {
-        shell.processExit(0);
+        exitApp();
       }
       break;
     // TODO Open file...nice in theory to use the built in, but it's a bit janky, and it'd be fun instead to make our own
@@ -167,8 +167,7 @@ shell.on("key", (name, matches, data) => {
     //   );
     //   break;
     case "CTRL_C":
-      shell.red("Exiting...");
-      shell.processExit(0);
+      exitApp();
       break;
     default:
       debug("key pressed=" + name);
@@ -185,34 +184,33 @@ function loadChapter() {
     if (currentLineIndex < 0) {
       currentLineIndex = null;
       currentChapterIndex--;
-      
+
       // If we have a cached count of the number of lines, we leverage that to move to the end of the previous chapter
-      if (typeof book.flow?.[currentChapterIndex]?.numLines === 'number') {
+      if (typeof book.flow?.[currentChapterIndex]?.numLines === "number") {
         // TODO Currently going back a chapter puts us near the end, like a single line change by pressing UP, but we also should go back a whole page via PAGE_UP in the same way
         // currentLineIndex = Math.min(0, book.flow[currentChapterIndex].numLines - shell.height - SHELL_HEIGHT_RESERVED);
         currentLineIndex = book.flow[currentChapterIndex].numLines;
       }
     }
   }
-  
+
   if (currentChapterIndex < 0) {
     debug("Cannot page back further, reached zero end of chapter index=" + currentChapterIndex);
     currentChapterIndex = 0;
-  }
-  else if (currentChapterIndex > book.flow?.length) {
+  } else if (currentChapterIndex > book.flow?.length) {
     debug("Ran out of chapters to move to with index=" + currentChapterIndex + " vs " + book.flow.length);
     currentChapterIndex = book.flow.length;
   }
-  
+
   shell.hideCursor();
-  
+
   const currentChapterObj = getChapterObj();
   book.getChapter(currentChapterObj?.id, (err, html) => {
     const chapterText = convert(html, conversionOptions);
     fullChapter = manualWrap(chapterText);
-    
+
     currentChapterObj.numLines = fullChapter?.length;
-    
+
     debug("Current line index is " + currentLineIndex + " vs count " + fullChapter?.length);
 
     // We need to page within our chapter
@@ -221,15 +219,18 @@ function loadChapter() {
         currentLineIndex = 0;
       }
 
-      debug(`From line index=${currentLineIndex} and to=${currentLineIndex + shell.height - SHELL_HEIGHT_RESERVED} in chapter index=${currentChapterIndex} (${currentChapterObj.id})`);
+      debug(
+        `From line index=${currentLineIndex} and to=${
+          currentLineIndex + shell.height - SHELL_HEIGHT_RESERVED
+        } in chapter index=${currentChapterIndex} (${currentChapterObj.id})`,
+      );
       currentPageText = fullChapter
         .slice(
           currentLineIndex,
-          currentLineIndex + shell.height - SHELL_HEIGHT_RESERVED
+          currentLineIndex + shell.height - SHELL_HEIGHT_RESERVED,
         )
         .join("\n");
-    }
-    // The entire chapter will fit in a single window
+    } // The entire chapter will fit in a single window
     else {
       debug("Entire chapter (" + currentChapterIndex + ") fits on one page");
       currentLineIndex = null;
@@ -238,9 +239,9 @@ function loadChapter() {
 
     shell.clear();
     shell.noFormat(currentPageText); // Do noFormat() instead of wrap() because as part of our line calculations we are manually wrapping
-    
+
     updateStatusLine();
-    
+
     shell.hideCursor();
   });
 }
@@ -249,54 +250,51 @@ function manualWrap(text) {
   // Manual wrapping is necessary because we need the _actual_ displayed lines for our paging
   const charWidth = 1;
   const resultLines = [];
-  const paragraphs = text.split('\n');
-  
+  const paragraphs = text.split("\n");
+
   for (const paragraph of paragraphs) {
     // Handle cases where an original line was empty or contained only whitespace
     if (paragraph.trim().length === 0) {
-      resultLines.push('');
+      resultLines.push("");
       continue;
     }
-    
+
     // Split the paragraph into words - using /\s+/ handles multiple spaces and tabs
     // Filter out any empty strings that might result from multiple spaces
-    const words = paragraph.split(/\s+/).filter(word => word.length > 0);
-    
+    const words = paragraph.split(/\s+/).filter((word) => word.length > 0);
+
     // If a paragraph had no actual words (just spaces) use an empty line
     if (words.length === 0) {
-        resultLines.push('');
-        continue;
+      resultLines.push("");
+      continue;
     }
-    
-    let currentLine = '';
+
+    let currentLine = "";
     let currentLineWidth = 0;
-    
+
     for (const word of words) {
       const wordWidth = shellStringWidth(word);
-      
+
       // Case 1: The current line is empty (first word on a new line)
       if (currentLine.length === 0) {
         currentLine = word;
         currentLineWidth = wordWidth;
-      }
-      // Case 2: Adding the word (with a leading space) fits on the current line
+      } // Case 2: Adding the word (with a leading space) fits on the current line
       else if (currentLineWidth + charWidth + wordWidth <= shell.width) {
-        currentLine += ' ' + word;
+        currentLine += " " + word;
         currentLineWidth += charWidth + wordWidth;
-      }
-      // Case 3: Adding the word (with a leading space) does NOT fit but the word itself fits on a new line
+      } // Case 3: Adding the word (with a leading space) does NOT fit but the word itself fits on a new line
       else if (wordWidth <= shell.width) {
         resultLines.push(currentLine);
         currentLine = word;
         currentLineWidth = wordWidth;
-      }
-      // Case 4: The word itself is longer than the terminal width, so it must be broken
+      } // Case 4: The word itself is longer than the terminal width, so it must be broken
       else {
         if (currentLine.length > 0) {
           resultLines.push(currentLine);
         }
-        
-        currentLine = '';
+
+        currentLine = "";
         currentLineWidth = 0;
 
         for (const char of word) {
@@ -311,13 +309,18 @@ function manualWrap(text) {
         }
       }
     }
-    
+
     if (currentLine.length > 0) {
       resultLines.push(currentLine);
     }
   }
 
   return resultLines;
+}
+
+function exitApp() {
+  shell.red("\n\nExiting, have a good day!");
+  shell.processExit(0);
 }
 
 function getChapterObj() {
@@ -334,7 +337,9 @@ function statusLine(msg) {
 
 function updateStatusLine() {
   statusLine().magenta(
-    `Status: w${shell.width}/h${shell.height}, line=${currentLineIndex ?? 0} of ${fullChapter?.length} in chapter=${currentChapterIndex} (${getChapterObj()?.id})`
+    `Status: w${shell.width}/h${shell.height}, line=${
+      currentLineIndex ?? 0
+    } of ${fullChapter?.length} in chapter=${currentChapterIndex} (${getChapterObj()?.id})`,
   );
 }
 

@@ -1,4 +1,9 @@
 {
+  "name": "glyph-epub",
+  "scripts": {
+    "start": "node ./glyph-epub.js",
+    "fmt": "deno fmt --line-width=120"
+  },
   "dependencies": {
     "epub": "^1.3.0",
     "html-to-text": "^9.0.5",
