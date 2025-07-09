@@ -1,10 +1,11 @@
 const shell = require("terminal-kit").terminal;
+const shellStringWidth = require("terminal-kit").stringWidth;
 const EpubLib = require("epub");
 const { convert } = require("html-to-text");
 
 const fs = require('fs');
 const path = require('path');
-const logPath = path.join(__dirname, 'app.log');
+const logPath = path.join(__dirname, 'debug.log');
 function log(message) {
   const timestamp = new Date().toISOString();
   const line = `[${timestamp}] ${message}\n`;
@@ -41,6 +42,7 @@ shell.on("key", (name, matches, data) => {
      Do shell.wrapColumn({ width: 30 }); once outside of loadChapter. width = null resets to terminal width
    slowTyping is a cool function, not sure we have a use
    Basic search/find with match highlighting in current page (only?)
+   Loading from command line arg and from in the app (using .fileInput?)
    */
   switch (name) {
     case "HOME":
@@ -49,6 +51,16 @@ shell.on("key", (name, matches, data) => {
       break;
     case "END":
       currentLineIndex = fullChapter?.length - shell.height;
+      loadChapter();
+      break;
+    case "CTRL_HOME":
+      currentLineIndex = null;
+      currentChapterIndex = 0;
+      loadChapter();
+      break;
+    case "CTRL_END":
+      currentLineIndex = null;
+      currentChapterIndex = book.flow?.length;
       loadChapter();
       break;
     case "PAGE_UP":
@@ -91,6 +103,24 @@ shell.on("key", (name, matches, data) => {
         shell.processExit(0);
       }
       break;
+    // TODO Open file...nice in theory to use the built in, but it's a bit janky, and it'd be fun instead to make our own
+    // case "SHIFT_F1":
+    //   shell.clear();
+    //   shell(`Open a file from ${os.homedir()}`);
+    //   shell.fileInput(
+    //     { baseDir: os.homedir() } ,
+    //     function( error , input ) {
+    //       if ( error )
+    //       {
+    //         shell.red.bold("\nAn error occurs: " + error + "\n");
+    //       }
+    //       else
+    //       {
+    //         shell.green("\nYour file is '%s'\n" , input);
+    //       }
+    //     }
+    //   );
+    //   break;
     case "CTRL_C":
       shell.red("Exiting...");
       shell.processExit(0);
@@ -124,7 +154,9 @@ function loadChapter() {
   const currentChapterId = getChapterObj()?.id;
   book.getChapter(currentChapterId, (err, html) => {
     const chapterText = convert(html, conversionOptions);
-    fullChapter = shell.str(chapterText)?.split("\n") ?? [];
+    // TTODO Splits properly BUT doesn't account for wrapping, so we'll often get a double line jump when using arrow up/down
+    // fullChapter = shell.str(chapterText)?.split("\n") ?? [];
+    fullChapter = wrapTextToTerminalLines(chapterText);
     
     log("Current line index is " + currentLineIndex + " vs count " + fullChapter?.length);
 
@@ -146,6 +178,7 @@ function loadChapter() {
     }
     // The entire chapter will fit in a single window
     else {
+      log("Entire chapter (" + currentChapterIndex + ") fits on one page");
       currentLineIndex = null;
       currentPageText = chapterText;
     }
@@ -162,6 +195,105 @@ function loadChapter() {
 
   //shell.spinner();
 }
+
+function wrapTextToTerminalLines(text) {
+  const spaceWidth = 1;
+  const resultLines = [];
+  const paragraphs = text.split('\n');
+  
+  for (const paragraph of paragraphs) {
+    // Handle cases where an original line was empty or contained only whitespace
+    if (paragraph.trim().length === 0) {
+      resultLines.push('');
+      continue;
+    }
+    
+    // Split the paragraph into words. Using /\s+/ handles multiple spaces and tabs.
+    // Filter out any empty strings that might result from multiple spaces.
+    const words = paragraph.split(/\s+/).filter(word => word.length > 0);
+    
+    // If a paragraph had no actual words (e.g., just spaces), push an empty line.
+    if (words.length === 0) {
+        resultLines.push('');
+        continue;
+    }
+    
+    let currentLine = '';
+    let currentLineWidth = 0;
+    
+    for (const word of words) {
+      const wordWidth = shellStringWidth(word);
+      
+      // Case 1: The current line is empty (first word on a new line)
+      if (currentLine.length === 0) {
+        currentLine = word;
+        currentLineWidth = wordWidth;
+      }
+      // Case 2: Adding the word (with a leading space) fits on the current line
+      else if (currentLineWidth + spaceWidth + wordWidth <= shell.width) {
+        currentLine += ' ' + word;
+        currentLineWidth += spaceWidth + wordWidth;
+      }
+      // Case 3: Adding the word (with a leading space) does NOT fit but the word itself fits on a new line
+      else if (wordWidth <= shell.width) {
+        resultLines.push(currentLine);
+        currentLine = word;
+        currentLineWidth = wordWidth;
+      }
+      // Case 4: The word itself is longer than the terminal width, so it must be broken
+      else {
+        if (currentLine.length > 0) {
+          resultLines.push(currentLine);
+        }
+        
+        currentLine = '';
+        currentLineWidth = 0;
+
+        for (const char of word) {
+          const charWidth = shellStringWidth(char);
+          if (currentLineWidth + charWidth <= shell.width) {
+            currentLine += char;
+            currentLineWidth += charWidth;
+          } else {
+            resultLines.push(currentLine);
+            currentLine = char;
+            currentLineWidth = charWidth;
+          }
+        }
+      }
+    }
+    
+    if (currentLine.length > 0) {
+      resultLines.push(currentLine);
+    }
+  }
+
+  return resultLines;
+}
+
+// TTODO Works well but isn't performant due to looping character by character
+// function wrapTextToTerminalLines(text) {
+//   const lines = [];
+//   const lineArray = text.split('\n');
+
+//   for (const currentLine of lineArray) {
+//     let line = '';
+//     for (const currentWord of currentLine) {
+//       const lineWidth = shellStringWidth(line);
+//       const charWidth = shellStringWidth(currentWord);
+
+//       if (lineWidth + charWidth > shell.width) {
+//         lines.push(line);
+//         line = currentWord;
+//       } else {
+//         line += currentWord;
+//       }
+//     }
+//     lines.push(line);
+//   }
+
+//   return lines;
+// }
 
 function getChapterObj() {
   return book.flow?.[currentChapterIndex];
