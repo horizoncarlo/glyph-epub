@@ -1,0 +1,32 @@
+{% extends 'layout.html' %}
+
+{% block title %}Chat{% endblock %}
+
+{% block content %}
+  <form method="get" action="{{ api }}/chat/send">
+    <label for="sender">who u is?</label>
+    <input type="text" id="sender" name="sender" value="{{ sender }}" placeholder="Your Name" maxlength="20">
+    
+    <hr/>
+    
+    <table>
+      {% for message in messages %}
+        <tr>
+          <td>
+            {{message.sender + ':' if message.sender else message.sender }}
+          </td>
+          <td style="padding-left: 20px;">
+            {{message.text}}
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+    
+    <center>
+      <input type="text" id="text" name="text" required autofocus maxlength="150">
+      <input type="submit" value="Send">
+      &nbsp;|&nbsp;
+      <input type="reset" value="Refresh" onclick="window.location.reload()">
+    </center>
+  </form>
+{% endblock %}

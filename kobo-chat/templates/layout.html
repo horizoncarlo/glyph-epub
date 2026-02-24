@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{% block title %}{% endblock %} - Glyph</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1" />
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    {% block header %}{% endblock %}
+  </head>
+  <body>
+    <section class="content">
+      {% block content %}{% endblock %}
+    </section>
+  </body>
+</html>

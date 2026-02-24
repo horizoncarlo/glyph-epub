@@ -1,0 +1,23 @@
+body {
+  overflow-y: scroll;
+  background-color: #333333;
+  color: white;
+  font-family: monospace;
+  margin-bottom: 53%;
+}
+
+input[type="text"] {
+  width: 50%;
+  height: 30px;
+  border: 0;
+  background-color: black;
+  color: white;
+  padding: 0 0 0 5px;
+  margin: 0;
+  font-family: monospace;
+}
+
+input[type="button"], input[type="submit"], input[type="reset"] {
+  height: 30px;
+  border-radius: 10px;
+}
