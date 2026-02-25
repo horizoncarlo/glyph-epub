@@ -48,7 +48,7 @@ def coinflip(room, sender, args):
 
 @command("time", silent=True)
 def time(room, sender, args):
-    room.add_system_message(f"Current time: {datetime.now().strftime("%c")}")
+    room.add_system_message(f"Current time: {datetime.now().strftime('%c')}")
 
 
 @command("roll", silent=True)
