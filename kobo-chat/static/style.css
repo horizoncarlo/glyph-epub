@@ -1,17 +1,29 @@
 body {
   overflow-y: scroll;
+  font-family: monospace;
+  /* Magic number that works best on Kobo Clara in 2026 to have the keyboard right under the input*/
+  margin-bottom: 53%;
+}
+
+.theme-dark {
   background-color: #333333;
   color: white;
-  font-family: monospace;
-  margin-bottom: 53%;
+}
+
+.theme-light {
+  background-color: #FEFEFE;
+  color: #111111;
+}
+
+.theme-dark input[type="text"] {
+  background-color: black;
+  color: white;
 }
 
 input[type="text"] {
   width: 50%;
   height: 30px;
   border: 0;
-  background-color: black;
-  color: white;
   padding: 0 0 0 5px;
   margin: 0;
   font-family: monospace;
@@ -22,9 +34,18 @@ input[type="button"], input[type="submit"], input[type="reset"] {
   border-radius: 10px;
 }
 
-.system-sender {
+.theme-dark .system-sender {
   color: lightblue;
   font-weight: bold;
+}
+
+.theme-light .system-sender {
+  color: navy;
+  font-weight: bold;
+}
+
+.day {
+  padding: 10px 0 10px 0;
 }
 
 /* Short hand (as it's in a repeating message table) for 'text' cell */

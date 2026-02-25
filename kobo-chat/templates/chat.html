@@ -15,23 +15,25 @@
         <tr>
           <td>
             {% if message.sender %}
-              {{message.timestamp.strftime("%H:%M") if message.timestamp}}
+              {{ message.timestamp.strftime("%H:%M") if message.timestamp }}
             {% endif %}
           </td>
           <td class="{{ 'system-sender' if message.sender and message.sender == 'System' }}">
             {% if message.sender %}
-              {{message.sender}}:
+              {{ message.sender }}:
             {% endif %}
           </td>
           <td class="tc">
             {% if not message.special.get("is_day") %}
               {% if message.special.get("is_mega") %}
                 <span style="font-size: x-large;">{{message.text}}</span>
+              {% elif message.special.get("is_system") %}
+                  {{ message.text | safe }}
               {% else %}
-                {{message.text}}
+                {{ message.text }}
               {% endif %}
             {% else %}
-              <div style="padding-top: 10px;"><i>{{message.text}}</i></div>
+              <div class="day"><i>{{ message.text }}</i></div>
             {% endif %}
           </td>
         </tr>
@@ -39,7 +41,7 @@
     </table>
     
     <center>
-      <input type="text" id="text" name="text" required autofocus maxlength="150">
+      <input type="text" id="text" name="text" autofocus maxlength="150">
       <input type="submit" value="Send">
       &nbsp;|&nbsp;
       <input type="reset" value="Refresh" onclick="window.location.reload()">

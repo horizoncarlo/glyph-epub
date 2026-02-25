@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for
-from util import get_base_api
+from flask import Flask, redirect, render_template, request, url_for
+
 from room import Room
+from util import get_base_api
 
 app = Flask(__name__)
 room = Room()
@@ -17,6 +18,7 @@ def main(all_message=False):
         api=get_base_api(),
         messages=(room.messages if all_message else room.messages[-50:]),
         sender=sender,
+        theme="theme-dark",
     )
 
 
