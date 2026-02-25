@@ -41,7 +41,10 @@
     </table>
     
     <center>
-      <input type="text" id="text" name="text" autofocus maxlength="150">
+      <input type="text" id="text" name="text" maxlength="150"
+             spellcheck="true" autofocus="true" autocapitalize="off" autocomplete="off"
+             onkeydown="chatDoKey(event)" onchange="saveChat(this)">
+      
       <input type="submit" value="Send">
       &nbsp;|&nbsp;
       <input type="reset" value="Refresh" onclick="window.location.reload()">
@@ -52,6 +55,20 @@
 {% block endscript %}
 <script>
   const LS_SENDER = 'sender';
+  const LS_TEXT = 'text';
+
+  function chatDoKey(event) {
+    if (event.key === 'ArrowUp' && document.getElementById('sender')) {
+      event.preventDefault();
+      document.getElementById('text').value = localStorage.getItem(LS_TEXT) ?? ''
+    }
+  }
+
+  function saveChat(ele) {
+    if (ele?.value?.trim().length) {
+      localStorage.setItem(LS_TEXT, ele.value.trim());
+    }
+  }
 
   function saveSender(ele) {
     if (ele?.value?.trim().length) {

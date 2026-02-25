@@ -72,8 +72,9 @@ class Room:
                     self.messages.append(message)
                 args = parts[1] if len(parts) > 1 else ""
                 func(self, sender, args)
-        else:
-            self.messages.append(message)
+                return
+
+        self.messages.append(message)
 
 
 @dataclass

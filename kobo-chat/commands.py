@@ -8,6 +8,7 @@ COMMANDS = {}
 pong_count = 0
 
 # TODO Command ideas:
+# Change name from an input to a /name command. Keep in URL as state
 # Jokes from dataset: https://github.com/amoudgl/short-jokes-dataset/blob/master/data/reddit-cleanjokes.csv
 # Fortune cookie (...find a dataset)
 # Change background color randomly. See also theme-light and theme-dark. Currently not setup per-user really
@@ -75,7 +76,7 @@ def hug(room, sender, args):
     room.add_message(sender, "(っ◕‿◕)っ")
 
 
-@command("8ball")
+@command("8ball", silent=True)
 def fate(room, sender, args):
     # The original: https://magic-8ball.com/magic-8-ball-answers/
     magic_8_ball_responses = [
@@ -102,7 +103,7 @@ def fate(room, sender, args):
     ]
 
     room.add_system_message(
-        f"Magic 8 Ball says: <b>{random.choice(magic_8_ball_responses)}</b>"
+        f"Magic 8 Ball says to {sender}: <b>{random.choice(magic_8_ball_responses)}</b>"
     )
 
 
