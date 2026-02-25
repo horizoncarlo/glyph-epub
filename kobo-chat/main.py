@@ -1,11 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for
-from util import get_our_host
+from util import get_base_api
+from room import Room
 
 app = Flask(__name__)
-messages = [
-    {"sender": "System", "text": "Welcome to the chat room!"},
-    {"sender": "System", "text": "Be responsible and cool :)"},
-]
+room = Room()
 
 if __name__ == "__main__":
     app.run(debug=True, threaded=True)
@@ -16,8 +14,8 @@ def main(all_message=False):
     sender = request.args.get("sender", "")
     return render_template(
         "chat.html",
-        api=get_our_host(),
-        messages=(messages if all_message else messages[-50:]),
+        api=get_base_api(),
+        messages=(room.messages if all_message else room.messages[-50:]),
         sender=sender,
     )
 
@@ -33,6 +31,6 @@ def send_chat():
     text = request.args.get("text", "")
 
     if text:
-        messages.append({"sender": sender, "text": text.capitalize()})
+        room.add_message(sender, text)
 
     return redirect(url_for("main", sender=sender))

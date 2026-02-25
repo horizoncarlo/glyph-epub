@@ -21,3 +21,13 @@ input[type="button"], input[type="submit"], input[type="reset"] {
   height: 30px;
   border-radius: 10px;
 }
+
+.system-sender {
+  color: lightblue;
+  font-weight: bold;
+}
+
+/* Short hand (as it's in a repeating message table) for 'text' cell */
+.tc {
+  padding-left: 20px;
+}

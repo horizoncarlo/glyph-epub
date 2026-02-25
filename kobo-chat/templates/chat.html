@@ -5,7 +5,8 @@
 {% block content %}
   <form method="get" action="{{ api }}/chat/send">
     <label for="sender">who u is?</label>
-    <input type="text" id="sender" name="sender" value="{{ sender }}" placeholder="Your Name" maxlength="20">
+    <input type="text" id="sender" name="sender" value="{{ sender }}" placeholder="Your Name" maxlength="15"
+           onchange="saveSender(this)">
     
     <hr/>
     
@@ -13,10 +14,25 @@
       {% for message in messages %}
         <tr>
           <td>
-            {{message.sender + ':' if message.sender else message.sender }}
+            {% if message.sender %}
+              {{message.timestamp.strftime("%H:%M") if message.timestamp}}
+            {% endif %}
           </td>
-          <td style="padding-left: 20px;">
-            {{message.text}}
+          <td class="{{ 'system-sender' if message.sender and message.sender == 'System' }}">
+            {% if message.sender %}
+              {{message.sender}}:
+            {% endif %}
+          </td>
+          <td class="tc">
+            {% if not message.special.get("is_day") %}
+              {% if message.special.get("is_mega") %}
+                <span style="font-size: x-large;">{{message.text}}</span>
+              {% else %}
+                {{message.text}}
+              {% endif %}
+            {% else %}
+              <div style="padding-top: 10px;"><i>{{message.text}}</i></div>
+            {% endif %}
           </td>
         </tr>
       {% endfor %}
@@ -29,4 +45,24 @@
       <input type="reset" value="Refresh" onclick="window.location.reload()">
     </center>
   </form>
+{% endblock %}
+
+{% block endscript %}
+<script>
+  const LS_SENDER = 'sender';
+
+  function saveSender(ele) {
+    if (ele?.value?.trim().length) {
+      localStorage.setItem(LS_SENDER, ele.value.trim());
+    }
+  }
+
+  function getSender() {
+    if (localStorage.getItem(LS_SENDER)?.trim().length &&
+        document.getElementById('sender')) {
+      document.getElementById('sender').value = localStorage.getItem(LS_SENDER);
+    }
+  }
+  getSender();
+</script>
 {% endblock %}
