@@ -5,12 +5,12 @@ body {
   margin-bottom: 53%;
 }
 
-.theme-dark {
+.theme-dark, .theme-dark a, .theme-dark a:visited {
   background-color: #333333;
   color: white;
 }
 
-.theme-light {
+.theme-light, .theme-light a, .theme-light a:visited {
   background-color: #FEFEFE;
   color: #111111;
 }
@@ -56,6 +56,11 @@ button {
   text-align: center;
   font-size: large;
   font-variant: small-caps;
+}
+
+.error {
+  color: #DD0000;
+  font-weight: bold;
 }
 
 /* Short hand (as it's in a repeating message table) for "text cell" */

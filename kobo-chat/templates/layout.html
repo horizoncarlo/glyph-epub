@@ -10,7 +10,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     
     <script>
-      let newMessageCount = 0
+      const LS_THEME = "theme";
+      let newMessageCount = 0;
       
       window.onfocus = () => {
         updateTitleMessageCount(0, true);
@@ -19,6 +20,22 @@
       function toggleThemeMode() {
         document.body.classList.toggle("theme-light");
         document.body.classList.toggle("theme-dark");
+        
+        saveTheme();
+      }
+      
+      function saveTheme() {
+        const isDark = document.body.classList.contains("theme-dark");
+        localStorage.setItem(LS_THEME, isDark ? "theme-dark" : "theme-light");
+      }
+
+      function getTheme() {
+        if (localStorage.getItem(LS_THEME)?.trim().length) {
+          const theme = localStorage.getItem(LS_THEME);
+          if (theme && theme.trim().length) {
+            document.body.classList = [theme];
+          }
+        }
       }
       
       function updateTitleMessageCount(modBy, isSetInstead) {
@@ -74,6 +91,10 @@
     <section class="content">
       {% block content %}{% endblock %}
     </section>
+    
+    <script>
+      getTheme();
+    </script>
   
     {% block endscript %}{% endblock %}
   </body>

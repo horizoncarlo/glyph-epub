@@ -3,19 +3,10 @@ import random
 import threading
 from datetime import datetime
 
-from util import fetch_public_api
+from util import check_limit, check_unsafe_pass, fetch_public_api
 
 COMMANDS = {}
 pong_count = 0
-
-
-def check_limit(room, limited_command_name, limit_cap):
-    room.limits[limited_command_name] += 1
-
-    if room.limits[limited_command_name] > limit_cap:
-        room.add_system_message(f"Used up /{limited_command_name}, try again tomorrow!")
-        return False
-    return True
 
 
 def command(name, silent=True):
@@ -43,7 +34,9 @@ def ping(room, sender, args):
 
 @command("time")
 def time(room, sender, args):
-    room.add_system_message(f"Current time: {datetime.now().strftime('%c')}")
+    room.add_system_message(
+        f"{sender} the current time is {datetime.now().strftime('%c')}"
+    )
 
 
 @command("roll")
@@ -93,7 +86,26 @@ def fish(room, sender, args):
 
 @command("hug")
 def hug(room, sender, args):
-    room.add_message(sender, f"{args} (っÓ‿Ó)っ")
+    room.add_message(sender, f"(っÓ‿Ó)っ {args} (っÓ‿Ó)っ")
+
+
+@command("cheer")
+def cheer(room, sender, args):
+    room.add_message(sender, f"{args} ^(¤o¤)^")
+
+
+@command("unsafe")
+def unsafe(room, sender, args):
+    if args:
+        split_args = args.split()
+        if len(split_args) > 1:  # Need at least the Password and some text
+            user_guess = split_args[0]
+            if check_unsafe_pass(room, user_guess):
+                room.add_message(sender, " ".join(split_args[1:]), is_safe=True)
+            else:
+                room.add_system_message(
+                    f"{sender} failed to authorize for /unsafe, nice try!"
+                )
 
 
 @command("beep")
@@ -101,11 +113,13 @@ def beep(room, sender, args):
     # if not check_limit(room, "beep", 50):
     #     return
 
-    room.add_system_message(
+    room.add_message(
+        sender,
         # TODO The beep plays as expected, but since the page is entirely re-rendered then it plays on every subsequent message too
         #      Need to manually track or remove the script from the `room.messages` itself, maybe with a `special` flag?
         # f"<small><i>beep</i></small> <b>d[ o_0 ]b</b> <small><i>beep</i></small><script>playBeep()</script>"
-        f"<small><i>beep</i></small> <b>d[ o_0 ]b</b> <small><i>beep</i></small>"
+        f"{html.escape(args)} <small><i>beep</i></small> <b>d[ o_0 ]b</b> <small><i>beep</i></small>",
+        is_safe=True,
     )
 
 
@@ -318,14 +332,14 @@ def unban(room, sender, args):
         room.add_system_message(f"{sender} UNBANNED {html.escape(args)} 【ツ】")
 
 
-@command("total")
+@command("total", silent=False)
 def total(room, sender, args):
     room.add_system_message(
         f"There have been <b>{len(room.messages)}</b> messages in the chat so far"
     )
 
 
-@command("uptime")
+@command("uptime", silent=False)
 def uptime(room, sender, args):
     now = datetime.now()
     delta = now - room.created_at
@@ -336,7 +350,7 @@ def uptime(room, sender, args):
     total_days = total_seconds // 86400
 
     room.add_system_message(
-        f"Chat up for {total_seconds} seconds or {total_minutes} minutes or {total_hours} hours or {total_days} days"
+        f"Chat up for {total_seconds:,} seconds or {total_minutes:,} minutes or {total_hours:,} hours or {total_days:,} days"
     )
 
 
@@ -364,7 +378,9 @@ def advice(room, sender, args):
         return
 
     def fetch():
-        data = fetch_public_api(room, "advice", "https://api.adviceslip.com/advice")
+        data = fetch_public_api(
+            room, sender, "advice", "https://api.adviceslip.com/advice"
+        )
 
         advice = data.get("slip", {}).get("advice")
 
@@ -381,15 +397,13 @@ def dog(room, sender, args):
 
     def fetch():
         data = fetch_public_api(
-            room, "dog picture", "https://dog.ceo/api/breeds/image/random"
+            room, sender, "dog picture", "https://dog.ceo/api/breeds/image/random"
         )
 
         image = data.get("message", {})
 
         if image:
-            room.add_system_message(
-                f"<img src='{image}' style='max-width: 80%;'></img>"
-            )
+            room.add_system_message(f"<img src='{image}' style='max-width: 80%;'>")
 
     threading.Thread(target=fetch).start()
 
@@ -402,6 +416,7 @@ def weather(room, sender, args):
     def fetch():
         data = fetch_public_api(
             room,
+            sender,
             "weather",
             "https://api.open-meteo.com/v1/forecast?latitude=51.0447&longitude=-114.0719&current=temperature_2m",
         )
