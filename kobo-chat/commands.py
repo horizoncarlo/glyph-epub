@@ -61,6 +61,11 @@ def shrug(room, sender, args):
     room.add_message(sender, "¯\_(ツ)_/¯")
 
 
+@command("fart", silent=True)
+def tableflip(room, sender, args):
+    room.add_message(sender, "(>_<)💨 ~~~pfft!")
+
+
 @command("tableflip", silent=True)
 def tableflip(room, sender, args):
     room.add_message(sender, "(╯°□°）╯︵ ┻━┻")
