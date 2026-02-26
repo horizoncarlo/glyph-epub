@@ -93,7 +93,11 @@ class Room:
                 # Unless marked Silent, show the input too
                 if not getattr(func, "_silent", False):
                     self.messages.append(message)
+
                 args = parts[1] if len(parts) > 1 else ""
+                if args.startswith("/"):
+                    args = args[1:]
+
                 func(self, message.sender, args)
                 return
 
