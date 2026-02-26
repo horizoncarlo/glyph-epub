@@ -58,7 +58,7 @@ def roll(room, sender, args):
 
 @command("shrug", silent=True)
 def shrug(room, sender, args):
-    room.add_message(sender, "¯\_(ツ)_/¯")
+    room.add_message(sender, "¯\\_(ツ)_/¯")
 
 
 @command("fart", silent=True)
