@@ -7,13 +7,14 @@
     <label for="sender">who u is?</label>
     <input type="text" id="sender" name="sender" value="{{ sender }}" placeholder="Your Name" maxlength="15"
            onchange="saveSender(this)">
+    <button type="button" onclick="toggleThemeMode()">Color</button>
     
     <hr/>
     
     <table>
       {% for message in messages %}
         <tr>
-          <td>
+          <td class="dc">
             {% if message.sender %}
               {{ message.timestamp.strftime("%H:%M") if message.timestamp }}
             {% endif %}
@@ -27,13 +28,13 @@
             {% if not message.special.get("is_day") %}
               {% if message.special.get("is_mega") %}
                 <span style="font-size: x-large;">{{message.text}}</span>
-              {% elif message.special.get("is_system") %}
+              {% elif message.special.get("is_system") or message.special.get("is_safe") %}
                   {{ message.text | safe }}
               {% else %}
                 {{ message.text }}
               {% endif %}
             {% else %}
-              <div class="day"><i>{{ message.text }}</i></div>
+              <div class="day">{{ message.text }}</div>
             {% endif %}
           </td>
         </tr>
@@ -42,12 +43,12 @@
     
     <center>
       <input type="text" id="text" name="text" maxlength="150"
-             spellcheck="true" autofocus="true" autocapitalize="off" autocomplete="off"
+             spellcheck="true" autofocus="true"
              onkeydown="chatDoKey(event)" onchange="saveChat(this)">
       
-      <input type="submit" value="Send">
+      <button type="submit">Send</button>
       &nbsp;|&nbsp;
-      <input type="reset" value="Refresh" onclick="window.location.reload()">
+      <button type="reset" onclick="window.location.reload()">Refresh</button>
     </center>
   </form>
 {% endblock %}
@@ -56,7 +57,7 @@
 <script>
   const LS_SENDER = 'sender';
   const LS_TEXT = 'text';
-
+  
   function chatDoKey(event) {
     if (event.key === 'ArrowUp' && document.getElementById('sender')) {
       event.preventDefault();

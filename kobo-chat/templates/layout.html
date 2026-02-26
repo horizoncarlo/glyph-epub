@@ -9,6 +9,65 @@
     
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     
+    <script>
+      let newMessageCount = 0
+      
+      window.onfocus = () => {
+        updateTitleMessageCount(0, true);
+      }
+      
+      function toggleThemeMode() {
+        document.body.classList.toggle("theme-light");
+        document.body.classList.toggle("theme-dark");
+      }
+      
+      function updateTitleMessageCount(modBy, isSetInstead) {
+        if (isSetInstead) {
+          newMessageCount = modBy;
+        }
+        else {
+          newMessageCount += modBy;
+        }
+        const prefix = newMessageCount > 0 ? '(' + newMessageCount + ') ' : '';
+        
+        let oldTitle = document.title;
+        if (document.title.lastIndexOf(')') !== -1) {
+          oldTitle = document.title.substring(document.title.lastIndexOf(')')+1)
+        }
+        document.title = prefix + oldTitle;
+      }
+      
+      function generateRandomColor() {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        
+        for (var i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        
+        return color;
+      }
+
+      function playBeep(frequency = 600, duration = 200, volume = 0.5) {
+        // Mostly copied from online, but play a fairly low-level sounding beep
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.frequency.value = frequency;
+        oscillator.type = "sine";
+        gainNode.gain.value = volume;
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.start();
+
+        setTimeout(() => {
+            oscillator.stop();
+            audioCtx.close();
+        }, duration);
+      }
+    </script>
+    
     {% block header %}{% endblock %}
   </head>
   <body class="{{ theme }}">

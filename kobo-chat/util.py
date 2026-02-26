@@ -1,3 +1,7 @@
+import json
+import urllib.request
+
+
 def get_base_api():
     return "/api"
 
@@ -12,4 +16,18 @@ def ordinal(n: int) -> str:
 
 
 def format_date_with_ordinal(dt):
-    return dt.strftime("%A ") + ordinal(dt.day)
+    return dt.strftime("%A %b ") + ordinal(dt.day)
+
+
+def fetch_public_api(room, type_prefix, url):
+    room.add_system_message(f"Fetching {type_prefix} (be sure to Refresh after)")
+
+    try:
+        with urllib.request.urlopen(url, timeout=5) as resp:
+            data = json.load(resp)
+        return data
+    except Exception as e:
+        pass
+
+    room.add_system_message(f"Failed to get {type_prefix} :(")
+    return {}

@@ -18,7 +18,7 @@ def main(all_message=False):
         api=get_base_api(),
         messages=(room.messages if all_message else room.messages[-50:]),
         sender=sender,
-        theme="theme-dark",
+        theme="theme-light",
     )
 
 

@@ -20,6 +20,11 @@ body {
   color: white;
 }
 
+.theme-light input[type="text"] {
+  background-color: #BBBBBB;
+  color: black;
+}
+
 input[type="text"] {
   width: 50%;
   height: 30px;
@@ -29,7 +34,7 @@ input[type="text"] {
   font-family: monospace;
 }
 
-input[type="button"], input[type="submit"], input[type="reset"] {
+button {
   height: 30px;
   border-radius: 10px;
 }
@@ -45,10 +50,21 @@ input[type="button"], input[type="submit"], input[type="reset"] {
 }
 
 .day {
-  padding: 10px 0 10px 0;
+  padding: 5px;
+  border: 2px dotted green;
+  border-radius: 10px;
+  text-align: center;
+  font-size: large;
+  font-variant: small-caps;
 }
 
-/* Short hand (as it's in a repeating message table) for 'text' cell */
+/* Short hand (as it's in a repeating message table) for "text cell" */
 .tc {
-  padding-left: 20px;
+  padding-left: 10px;
+}
+
+/* Short hand for "date cell" */
+.dc {
+  font-size: xx-small;
+  vertical-align: middle;
 }
