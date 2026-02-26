@@ -16,6 +16,9 @@ class Room:
         # Various limits, which are cleared at the start of every new day
         self.limits = defaultdict(int)
 
+        # Various banned names - pretty simple to change your name to avoid, mostly just to bug the kids
+        self.banned = set()
+
         # Add our System messages, but setup our day header so the first human message gets one
         self.last_day = None
         self.add_system_message("Welcome to the chat room!")
@@ -28,7 +31,10 @@ class Room:
     def change_day(self, message):
         self.last_day = message.timestamp if message else datetime.now()
         self.add_day_message()
+
+        # Reset our limits and banned list at the start of each new day
         self.limits = defaultdict(int)
+        self.banned = set()
 
     def add_system_message(self, text):
         self.add_message(NAME_SYSTEM, text, is_system=True)
@@ -44,6 +50,10 @@ class Room:
             and _sender.lower() == NAME_SYSTEM.lower()
         ):
             _sender = "Faker"
+
+        # Enforce the ban list
+        if _sender in self.banned:
+            return
 
         message = Message(
             sender=_sender,

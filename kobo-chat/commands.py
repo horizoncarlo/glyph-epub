@@ -1,3 +1,4 @@
+import html
 import random
 import threading
 from datetime import datetime
@@ -82,6 +83,14 @@ def silent(room, sender, args):
     room.add_message(sender, f"{args} [{{-_-}}] ZZZzz zz z...")
 
 
+@command("fish")
+def fish(room, sender, args):
+    room.add_message(
+        sender,
+        f"{args} ¸.·´¯`·.´¯`·.¸¸.·´¯`·.¸><(((º> (caught a {random.randint(1, 50)} pounder!)",
+    )
+
+
 @command("hug")
 def hug(room, sender, args):
     room.add_message(sender, f"{args} (っÓ‿Ó)っ")
@@ -96,7 +105,7 @@ def beep(room, sender, args):
         # TODO The beep plays as expected, but since the page is entirely re-rendered then it plays on every subsequent message too
         #      Need to manually track or remove the script from the `room.messages` itself, maybe with a `special` flag?
         # f"<small><i>beep</i></small> <b>d[ o_0 ]b</b> <small><i>beep</i></small><script>playBeep()</script>"
-        f"{args} <small><i>beep</i></small> <b>d[ o_0 ]b</b> <small><i>beep</i></small>"
+        f"<small><i>beep</i></small> <b>d[ o_0 ]b</b> <small><i>beep</i></small>"
     )
 
 
@@ -127,7 +136,7 @@ def fate(room, sender, args):
     ]
 
     room.add_system_message(
-        f"Magic 8 Ball says to {sender}: <b>{random.choice(magic_8_ball_responses)}</b>"
+        f"{sender} asks Magic 8 Ball: <i>{html.escape(args)}</i> and the answer is <b>{random.choice(magic_8_ball_responses)}</b>"
     )
 
 
@@ -275,6 +284,38 @@ def rps(room, sender, args):
     room.add_system_message(
         f"Shoot! {sender} threw {human_choice} and System threw {robot_choice}. Winner is <b>{winner}</b>!"
     )
+
+
+@command("ban", silent=False)
+def ban(room, sender, args):
+    if not args or len(args.strip()) == 0 or sender == args:
+        return
+
+    if args not in room.banned:
+        room.banned.add(args)
+        room.add_system_message(f"{sender} BANNED {html.escape(args)} (╯︵╰,)")
+
+
+@command("banlist", silent=False)
+def banlist(room, sender, args):
+    if len(room.banned) > 0:
+        room.add_system_message(
+            f"<u>Banlist</u><br/>{html.escape(", ".join(room.banned))}"
+        )
+    else:
+        room.add_system_message(
+            "No one is banned! <small><i>(Friendly bunch here...)</i></small>"
+        )
+
+
+@command("unban", silent=False)
+def unban(room, sender, args):
+    if not args or len(args.strip()) == 0 or sender == args:
+        return
+
+    if args in room.banned:
+        room.banned.discard(args)
+        room.add_system_message(f"{sender} UNBANNED {html.escape(args)} 【ツ】")
 
 
 @command("total")

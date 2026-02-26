@@ -1,3 +1,5 @@
+import html
+
 from flask import Flask, redirect, render_template, request, url_for
 
 from room import Room
@@ -10,9 +12,18 @@ if __name__ == "__main__":
     app.run(debug=True, threaded=True)
 
 
+def get_sender(request):
+    sender = html.escape(request.args.get("sender", "")).strip() or "Unknown"
+
+    if sender.startswith("/"):
+        sender = sender[1:]
+
+    return sender
+
+
 @app.route("/")
 def main(all_message=False):
-    sender = request.args.get("sender", "")
+    sender = get_sender(request)
     return render_template(
         "chat.html",
         api=get_base_api(),
@@ -29,7 +40,7 @@ def all():
 
 @app.get("/api/chat/send")
 def send_chat():
-    sender = request.args.get("sender", "").strip() or "Unknown"
+    sender = get_sender(request)
     text = request.args.get("text", "")
 
     if text:
