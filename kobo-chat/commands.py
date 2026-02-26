@@ -300,7 +300,7 @@ def ban(room, sender, args):
 def banlist(room, sender, args):
     if len(room.banned) > 0:
         room.add_system_message(
-            f"<u>Banlist</u><br/>{html.escape(", ".join(room.banned))}"
+            f"<u>Banlist</u><br/>{html.escape(', '.join(room.banned))}"
         )
     else:
         room.add_system_message(
