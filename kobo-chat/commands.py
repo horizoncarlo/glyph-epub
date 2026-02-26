@@ -112,6 +112,31 @@ def fate(room, sender, args):
     )
 
 
+@command("dog", silent=True)
+def dog(room, sender, args):
+    room.add_system_message("Fetching dog picture...be sure to Refresh after")
+
+    def fetch():
+        try:
+            url = "https://dog.ceo/api/breeds/image/random"
+            with urllib.request.urlopen(url, timeout=5) as resp:
+                data = json.load(resp)
+            image = data.get("message", {})
+
+            if image:
+                room.add_system_message(
+                    f"<img src='{image}' style='max-width: 80%;'></img>"
+                )
+
+            return
+        except Exception as e:
+            pass
+
+        room.add_system_message("Failed to get a random dog picture :(")
+
+    threading.Thread(target=fetch).start()
+
+
 @command("weather", silent=True)
 def weather(room, sender, args):
     room.add_system_message("Fetching weather...be sure to Refresh after")
