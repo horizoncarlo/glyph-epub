@@ -3,10 +3,8 @@
 {% block title %}Chat{% endblock %}
 
 {% block content %}
-  <form method="get" action="{{ api }}/chat/send">
-    <label for="sender">who u is?</label>
-    <input type="text" id="sender" name="sender" value="{{ sender }}" placeholder="Your Name" maxlength="15"
-           onchange="saveSender(this)">
+  <form method="post" action="{{ api }}/chat/send">
+    <input type="hidden" id="sender" name="sender" value="{{ sender }}">
     <button type="button" onclick="toggleThemeMode()">Theme</button>
     
     <hr/>
@@ -71,16 +69,24 @@
     }
   }
 
-  function saveSender(ele) {
-    if (ele?.value?.trim().length) {
-      localStorage.setItem(LS_SENDER, ele.value.trim());
+  function saveSender(value) {
+    if (value?.trim().length) {
+      localStorage.setItem(LS_SENDER, value.trim());
     }
   }
 
   function getSender() {
-    if (localStorage.getItem(LS_SENDER)?.trim().length &&
+    // Query param is the main source, if we don't have that fallback to local storage
+    const urlParams = new URLSearchParams(window.location.search);
+    const sender = urlParams.get("sender");
+    
+    if (!sender &&
+        localStorage.getItem(LS_SENDER)?.trim().length &&
         document.getElementById('sender')) {
       document.getElementById('sender').value = localStorage.getItem(LS_SENDER);
+    }
+    else {
+      saveSender(sender);
     }
   }
   getSender();

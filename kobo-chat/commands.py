@@ -310,6 +310,11 @@ def ban(room, sender, args):
         room.add_system_message(f"{sender} BANNED {html.escape(args)} (╯︵╰,)")
 
 
+@command("name")
+def name(room, sender, args):
+    room.add_system_message(f"{sender} tried to rename to {html.escape(args)}")
+
+
 @command("banlist", silent=False)
 def banlist(room, sender, args):
     if len(room.banned) > 0:

@@ -24,7 +24,7 @@ class Room:
         self.add_system_message("Welcome to the chat room!")
         self.add_system_message("Be responsible and cool :)")
         self.add_system_message(
-            "/help can be used to show fun commands"
+            "/help can be used to show fun commands, like /name [You]"
         )  # Show commands initially
         self.last_day = datetime.now() - timedelta(days=1)
 
@@ -88,7 +88,9 @@ class Room:
                 1:
             ]  # Command is the first split, then we remove the slash too
 
-            func = COMMANDS.get(command)
+            func = COMMANDS.get(
+                command.lower()
+            )  # Ensure case insensitivity for commands
             if func:
                 # Unless marked Silent, show the input too
                 if not getattr(func, "_silent", False):
