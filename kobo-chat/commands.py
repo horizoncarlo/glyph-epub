@@ -421,8 +421,9 @@ def highfive(room, sender, args):
 
         high_five_waiting = None
     else:
+        tip = random.choice(["Dab them up!", "Don't leave them hanging!"])
         room.add_system_message(
-            f"{sender} is waiting for a <b>high five</b>. {random.choice(['Dab them up!', 'Don\'t leave them hanging!'])}"
+            f"{sender} is waiting for a <b>high five</b>. {tip}"
         )
         high_five_waiting = sender
 
