@@ -1,12 +1,24 @@
+import ast
 import html
+import operator as op
 import random
-import threading
 from datetime import datetime
+from threading import Thread, Timer
 
 from util import check_limit, check_unsafe_pass, fetch_public_api
 
 COMMANDS = {}
+CALC_OPS = {
+    ast.Add: op.add,
+    ast.Sub: op.sub,
+    ast.Mult: op.mul,
+    ast.Div: op.truediv,
+    ast.USub: op.neg,
+}
+
 pong_count = 0
+high_five_waiting = None  # Set to an initial sender if they try to highfive
+high_five_timer = None
 
 
 def command(name, silent=True):
@@ -94,8 +106,8 @@ def cheer(room, sender, args):
     room.add_message(sender, f"{args} ^(¤o¤)^")
 
 
-@command("unsafe")
-def unsafe(room, sender, args):
+@command("html")
+def html(room, sender, args):
     if args:
         split_args = args.split()
         if len(split_args) > 1:  # Need at least the Password and some text
@@ -104,7 +116,7 @@ def unsafe(room, sender, args):
                 room.add_message(sender, " ".join(split_args[1:]), is_safe=True)
             else:
                 room.add_system_message(
-                    f"{sender} failed to authorize for /unsafe, nice try!"
+                    f"{sender} failed to authorize for /html, nice try!"
                 )
 
 
@@ -344,6 +356,38 @@ def total(room, sender, args):
     )
 
 
+@command("calc", silent=False)
+def calc(room, sender, args):
+    # Bit verbose, but beats the insecurity of a straight eval()
+    def eval_node(node):
+        if len(args) > room.maxinput:
+            raise ValueError
+
+        if isinstance(node, ast.Constant):
+            if isinstance(node.value, (int, float)):
+                return node.value
+            raise ValueError
+
+        if isinstance(node, ast.BinOp) and type(node.op) in CALC_OPS:
+            return CALC_OPS[type(node.op)](eval_node(node.left), eval_node(node.right))
+
+        if isinstance(node, ast.UnaryOp) and type(node.op) in CALC_OPS:
+            return CALC_OPS[type(node.op)](eval_node(node.operand))
+
+        raise ValueError
+
+    try:
+        tree = ast.parse(args, mode="eval")
+        res = eval_node(tree.body)
+
+        if isinstance(res, float):
+            res = round(res, 3)
+
+        room.add_system_message(f"Answer: <b>{res:,}</b>")
+    except Exception:
+        room.add_system_message("Answer: <b>Error</b>")
+
+
 @command("uptime", silent=False)
 def uptime(room, sender, args):
     now = datetime.now()
@@ -359,6 +403,41 @@ def uptime(room, sender, args):
     )
 
 
+@command("highfive")
+def highfive(room, sender, args):
+    global high_five_waiting, high_five_timer
+
+    if high_five_waiting:
+        if high_five_waiting == sender:  # Can't high five yourself
+            return
+
+        room.add_system_message(
+            f"{sender} and {high_five_waiting} <span class='high-five'>HIGH FIVED!!! 🫸💥🫷</span>"
+        )
+
+        if high_five_timer:
+            high_five_timer.cancel()
+            high_five_timer = None
+
+        high_five_waiting = None
+    else:
+        room.add_system_message(
+            f"{sender} is waiting for a <b>high five</b>. {random.choice(['Dab them up!', 'Don\'t leave them hanging!'])}"
+        )
+        high_five_waiting = sender
+
+        def left_hanging():
+            global high_five_waiting, high_five_timer
+            room.add_system_message(
+                f"{high_five_waiting} was left hanging on their <b>high five :(</b>"
+            )
+            high_five_waiting = None
+            high_five_timer = None
+
+        high_five_timer = Timer(7.5, left_hanging)
+        high_five_timer.start()
+
+
 @command("stoic")
 def stoic(room, sender, args):
     if not check_limit(room, "stoic", 20):
@@ -366,7 +445,7 @@ def stoic(room, sender, args):
 
     def fetch():
         data = fetch_public_api(
-            room, "stoic quote", "https://stoic.tekloon.net/stoic-quote"
+            room, sender, "stoic quote", "https://stoic.tekloon.net/stoic-quote"
         )
 
         quote = data.get("data", {}).get("quote")
@@ -374,7 +453,7 @@ def stoic(room, sender, args):
         if quote:
             room.add_system_message(f"Quote: <b>{quote}</b>")
 
-    threading.Thread(target=fetch).start()
+    Thread(target=fetch).start()
 
 
 @command("advice")
@@ -392,7 +471,7 @@ def advice(room, sender, args):
         if advice:
             room.add_system_message(f"Here's some advice: <b>{advice}</b>")
 
-    threading.Thread(target=fetch).start()
+    Thread(target=fetch).start()
 
 
 @command("dog")
@@ -408,9 +487,46 @@ def dog(room, sender, args):
         image = data.get("message", {})
 
         if image:
-            room.add_system_message(f"<img src='{image}' style='max-width: 80%;'>")
+            room.add_system_message(f"<img src='{image}' class='api-image'>")
 
-    threading.Thread(target=fetch).start()
+    Thread(target=fetch).start()
+
+
+@command("cat")
+def cat(room, sender, args):
+    if not check_limit(room, "cat", 20):
+        return
+
+    def fetch():
+        data = fetch_public_api(
+            room,
+            sender,
+            "cat picture",
+            "https://api.sefinek.net/api/v2/random/animal/cat",
+        )
+
+        image = data.get("message", {})
+
+        if image:
+            room.add_system_message(f"<img src='{image}' class='api-image'>")
+
+    Thread(target=fetch).start()
+
+
+@command("joke")
+def joke(room, sender, args):
+    if not check_limit(room, "joke", 30):
+        return
+
+    def fetch():
+        data = fetch_public_api(room, sender, "dad joke", "https://icanhazdadjoke.com/")
+
+        joke = data.get("joke", {})
+
+        if joke:
+            room.add_system_message(f"Joke: <b>{joke}</b>")
+
+    Thread(target=fetch).start()
 
 
 @command("weather")
@@ -433,4 +549,4 @@ def weather(room, sender, args):
                 f"Current temperature is <b>{temperature}</b> degrees Celsius"
             )
 
-    threading.Thread(target=fetch).start()
+    Thread(target=fetch).start()

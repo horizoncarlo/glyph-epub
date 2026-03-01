@@ -5,11 +5,12 @@ from datetime import datetime, timedelta
 from commands import COMMANDS
 from util import format_date_with_ordinal
 
-NAME_SYSTEM = "System"
-
 
 class Room:
     def __init__(self):
+        self.maxinput = 150  # Max chat message input
+        self.admin_name = "System"
+
         self.messages = []
         self.created_at = datetime.now()
 
@@ -37,7 +38,7 @@ class Room:
         self.banned = set()
 
     def add_system_message(self, text):
-        self.add_message(NAME_SYSTEM, text, is_system=True)
+        self.add_message(self.admin_name, text, is_system=True)
 
     def add_day_message(self):
         self.add_message(None, format_date_with_ordinal(self.last_day), is_day=True)
@@ -47,7 +48,7 @@ class Room:
         if (
             not _special.get("is_system")
             and _sender
-            and _sender.lower() == NAME_SYSTEM.lower()
+            and _sender.lower() == self.admin_name.lower()
         ):
             _sender = "Faker"
 

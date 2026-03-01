@@ -63,6 +63,17 @@ button {
   font-weight: bold;
 }
 
+.high-five {
+  font-size: xx-large;
+  font-weight: bold;
+  text-shadow: 0 0 10px plum;
+}
+
+.api-image {
+  max-width: 640px;
+  max-height: 480px;
+}
+
 /* Short hand (as it's in a repeating message table) for "text cell" */
 .tc {
   padding-left: 10px;

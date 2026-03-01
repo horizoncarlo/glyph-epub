@@ -20,13 +20,22 @@ def format_date_with_ordinal(dt):
     return dt.strftime("%A %b ") + ordinal(dt.day)
 
 
-def fetch_public_api(room, sender, type_prefix, url):
+def fetch_public_api(room, sender, type_prefix, url, headers={}):
     room.add_system_message(
         f"Fetching {type_prefix} for {sender} <small>(be sure to <a href='.'>Refresh</a> after)</small>"
     )
 
     try:
-        with urllib.request.urlopen(url, timeout=5) as resp:
+        headers = {
+            "User-Agent": "Ebook Chat",
+            "Accept": "application/json",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        }
+
+        req = urllib.request.Request(url, headers=headers)
+
+        with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.load(resp)
         return data
     except Exception as e:

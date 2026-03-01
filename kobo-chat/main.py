@@ -27,7 +27,7 @@ def get_sender(request):
 def main(all_message=False):
     sender = get_sender(request)
 
-    ## Some general ideas if we want a unique identifier (regardless of name change) for each session
+    ## TODO Some general ideas if we want a unique identifier (regardless of name change) for each session
     ## Requires `app.secret_key = 'something-unique'` at top of file below Flask creation
     ## session.permanent = True  # Doesn't work on Kobo, just resets on new browser open
     # userId = session.get("userId", str(random.randint(1000, 4000))
@@ -38,6 +38,8 @@ def main(all_message=False):
         api=get_base_api(),
         messages=(room.messages if all_message else room.messages[-50:]),
         sender=sender,
+        maxinput=room.maxinput,
+        admin_name=room.admin_name,
         theme="theme-light",
     )
 

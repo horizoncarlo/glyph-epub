@@ -17,7 +17,7 @@
               {{ message.timestamp.strftime("%H:%M") if message.timestamp }}
             {% endif %}
           </td>
-          <td class="{{ 'system-sender' if message.sender and message.sender == 'System' }}">
+          <td class="{{ 'system-sender' if message.sender and message.sender == admin_name }}">
             {% if message.sender %}
               {{ message.sender }}:
             {% endif %}
@@ -40,7 +40,7 @@
     </table>
     
     <center>
-      <input type="text" id="text" name="text" maxlength="150"
+      <input type="text" id="text" name="text" maxlength="{{maxinput}}"
              spellcheck="true" autofocus="true"
              onkeydown="chatDoKey(event)" onchange="saveChat(this)">
       
