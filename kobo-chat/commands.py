@@ -493,27 +493,6 @@ def dog(room, sender, args):
     Thread(target=fetch).start()
 
 
-@command("cat")
-def cat(room, sender, args):
-    if not check_limit(room, "cat", 20):
-        return
-
-    def fetch():
-        data = fetch_public_api(
-            room,
-            sender,
-            "cat picture",
-            "https://api.sefinek.net/api/v2/random/animal/cat",
-        )
-
-        image = data.get("message", {})
-
-        if image:
-            room.add_system_message(f"<img src='{image}' class='api-image'>")
-
-    Thread(target=fetch).start()
-
-
 @command("joke")
 def joke(room, sender, args):
     if not check_limit(room, "joke", 30):

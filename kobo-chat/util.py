@@ -27,7 +27,7 @@ def fetch_public_api(room, sender, type_prefix, url, headers={}):
 
     try:
         headers = {
-            "User-Agent": "Ebook Chat",
+            "User-Agent": "ebook-chat/1.0.0 (+https://github.com/horizoncarlo/glyph-epub)",
             "Accept": "application/json",
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
