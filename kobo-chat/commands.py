@@ -106,6 +106,21 @@ def cheer(room, sender, args):
     room.add_message(sender, f"{args} ^(¤o¤)^")
 
 
+@command("b")
+def bold(room, sender, args):
+    room.add_message(sender, f"<b>{html.escape(args)}</b>", is_safe=True)
+
+
+@command("i")
+def italic(room, sender, args):
+    room.add_message(sender, f"<i>{html.escape(args)}</i>", is_safe=True)
+
+
+@command("u")
+def underline(room, sender, args):
+    room.add_message(sender, f"<u>{html.escape(args)}</u>", is_safe=True)
+
+
 @command("html")
 def html_command(room, sender, args):
     if args:
