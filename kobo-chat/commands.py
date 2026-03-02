@@ -325,7 +325,9 @@ def ban(room, sender, args):
 @command("name")
 def name(room, sender, args):
     if not args or len(args.strip()) == 0:
-        room.add_system_message(f"Your current name is {sender} - enter a new name with the command to change")
+        room.add_system_message(
+            f"Your current name is {sender} - enter a new name with the command to change"
+        )
     else:
         room.add_system_message(f"{sender} tried to rename to {html.escape(args)}")
 
@@ -362,7 +364,9 @@ def total(room, sender, args):
 @command("calc", silent=False)
 def calc(room, sender, args):
     if not args or len(args.strip()) == 0:
-        room.add_system_message(f"{sender} enter a math calculation (such as 2+2) to use the /calc command")
+        room.add_system_message(
+            f"{sender} enter a math calculation (such as 2+2) to use the /calc command"
+        )
         return
 
     # Bit verbose, but beats the insecurity of a straight eval()
@@ -429,9 +433,7 @@ def highfive(room, sender, args):
         high_five_waiting = None
     else:
         tip = random.choice(["Dab them up!", "Don't leave them hanging!"])
-        room.add_system_message(
-            f"{sender} is waiting for a <b>high five</b>. {tip}"
-        )
+        room.add_system_message(f"{sender} is waiting for a <b>high five</b>. {tip}")
         high_five_waiting = sender
 
         def left_hanging():
