@@ -361,6 +361,10 @@ def total(room, sender, args):
 
 @command("calc", silent=False)
 def calc(room, sender, args):
+    if not args or len(args.strip()) == 0:
+        room.add_system_message(f"{sender} enter a math calculation (such as 2+2) to use the /calc command")
+        return
+
     # Bit verbose, but beats the insecurity of a straight eval()
     def eval_node(node):
         if len(args) > room.maxinput:
