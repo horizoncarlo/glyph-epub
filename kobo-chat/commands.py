@@ -107,7 +107,7 @@ def cheer(room, sender, args):
 
 
 @command("html")
-def html(room, sender, args):
+def html_command(room, sender, args):
     if args:
         split_args = args.split()
         if len(split_args) > 1:  # Need at least the Password and some text
@@ -324,7 +324,10 @@ def ban(room, sender, args):
 
 @command("name")
 def name(room, sender, args):
-    room.add_system_message(f"{sender} tried to rename to {html.escape(args)}")
+    if not args or len(args.strip()) == 0:
+        room.add_system_message(f"Your current name is {sender} - enter a new name with the command to change")
+    else:
+        room.add_system_message(f"{sender} tried to rename to {html.escape(args)}")
 
 
 @command("banlist", silent=False)
