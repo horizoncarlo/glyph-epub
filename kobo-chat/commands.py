@@ -5,6 +5,8 @@ import random
 from datetime import datetime
 from threading import Thread, Timer
 
+from flask import session
+
 from util import check_limit, check_unsafe_pass, fetch_public_api
 
 COMMANDS = {}
@@ -15,10 +17,16 @@ CALC_OPS = {
     ast.Div: op.truediv,
     ast.USub: op.neg,
 }
+HIGH_FIVE_TIMEOUT_S = 30
+VOTE_TIMEOUT_S = 60 * 60  # 1 hour
 
 pong_count = 0
 high_five_waiting = None  # Set to an initial sender if they try to highfive
 high_five_timer = None
+
+vote_text = None
+vote_count = {}
+vote_timer = None
 
 
 def command(name, silent=True):
@@ -429,6 +437,68 @@ def uptime(room, sender, args):
     )
 
 
+@command("vote", silent=False)
+def vote(room, sender, args):
+    global vote_text, vote_timer
+
+    if vote_text:
+        room.add_system_message(
+            f"Vote in progress, use /voteyes or /voteno for <b>{vote_text}</b>"
+        )
+        return
+
+    def vote_done():
+        global vote_text, vote_count, vote_timer
+
+        room.add_system_message(
+            f"Vote complete! Yes: <i>{vote_count.get('yes', 0)}</i> vs No: <i>{vote_count.get('no', 0)}</i> for <b>{vote_text}</b>"
+        )
+
+        vote_text = None
+        vote_count = {}
+        vote_timer = None
+
+    vote_text = args
+    vote_timer = Timer(VOTE_TIMEOUT_S, vote_done)
+    vote_timer.start()
+
+    session.pop("hasvoted", None)
+
+    room.add_system_message(
+        f"{sender} started a vote! Use /voteyes or /voteno to weigh in. Results shown in <b>1 hour</b>"
+    )
+
+
+@command("voteyes")
+def voteyes(room, sender, args):
+    _vote(room, sender, "yes")
+
+
+@command("voteno")
+def voteno(room, sender, args):
+    _vote(room, sender, "no")
+
+
+def _vote(room, sender, vote):
+    global vote_text, vote_count
+
+    if not vote_text:
+        room.add_system_message(
+            f"{sender} tried to vote but there's not current vote! Use /vote [text] first"
+        )
+        return
+
+    if session.get("hasvoted"):
+        room.add_system_message(
+            f"{sender} tried to vote again, but already has! Sketchy..."
+        )
+        return
+
+    room.add_system_message(f"{sender} voted in the current election!")
+    vote_count[vote] = vote_count.get(vote, 0) + 1
+    session["hasvoted"] = True
+
+
 @command("highfive")
 def highfive(room, sender, args):
     global high_five_waiting, high_five_timer
@@ -459,7 +529,7 @@ def highfive(room, sender, args):
             high_five_waiting = None
             high_five_timer = None
 
-        high_five_timer = Timer(7.5, left_hanging)
+        high_five_timer = Timer(HIGH_FIVE_TIMEOUT_S, left_hanging)
         high_five_timer.start()
 
 
@@ -512,7 +582,9 @@ def dog(room, sender, args):
         image = data.get("message", {})
 
         if image:
-            room.add_system_message(f"<img src='{image}' class='api-image'>")
+            room.add_system_message(
+                f"<img src='{image}' class='api-image' width='640' height='480' alt='Random picture of a dog'>"
+            )
 
     Thread(target=fetch).start()
 

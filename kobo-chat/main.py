@@ -1,11 +1,15 @@
 import html
+import os
+import secrets
 
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import Flask, redirect, render_template, request, url_for
 
 from room import Room
 from util import get_base_api
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("GLYPH_SECRET_KEY") or secrets.token_hex(8)
+
 room = Room()
 
 if __name__ == "__main__":
