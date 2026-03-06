@@ -583,7 +583,7 @@ def dog(room, sender, args):
 
         if image:
             room.add_system_message(
-                f"<img src='{image}' class='api-image' width='640' height='480' alt='Random picture of a dog'>"
+                f"<img src='{image}' class='api-image' height='480' alt='Random picture of a dog'>"
             )
 
     Thread(target=fetch).start()
