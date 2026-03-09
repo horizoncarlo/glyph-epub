@@ -59,6 +59,21 @@ def time(room, sender, args):
     )
 
 
+@command("who", silent=False)
+def who(room, sender, args):
+    room.check_client_activity()
+
+    if len(room.clients) <= 1:
+        room.add_system_message(
+            f"Just YOU online in the last {room.expire_client_after_min} minutes <small>(so lonely in here...)</small>"
+        )
+    else:
+        clients_fmt = ", ".join(client.sender for client in room.clients.values())
+        room.add_system_message(
+            f"{len(room.clients)} people online in the last {room.expire_client_after_min} minutes: {clients_fmt}"
+        )
+
+
 @command("roll")
 def roll(room, sender, args):
     room.add_system_message(f"{sender} rolled a <b>{random.randint(1, 6)}</b>")
@@ -137,10 +152,15 @@ def html_command(room, sender, args):
             user_guess = split_args[0]
             if check_unsafe_pass(room, user_guess):
                 room.add_message(sender, " ".join(split_args[1:]), is_safe=True)
+                return
             else:
                 room.add_system_message(
                     f"{sender} failed to authorize for /html, nice try!"
                 )
+                return
+    room.add_system_message(
+        f"{sender} incorrectly tried a command. Use /html [password] [text]"
+    )
 
 
 @command("beep")
@@ -160,6 +180,9 @@ def beep(room, sender, args):
 
 @command("8ball")
 def fate(room, sender, args):
+    if not args or len(args.strip()) == 0:
+        args = "A secret"
+
     # The original: https://magic-8ball.com/magic-8-ball-answers/
     magic_8_ball_responses = [
         "It is certain",
@@ -363,7 +386,7 @@ def banlist(room, sender, args):
         )
     else:
         room.add_system_message(
-            "No one is banned! <small><i>(Friendly bunch here...)</i></small>"
+            "No one is banned! <small><i>(friendly bunch here...)</i></small>"
         )
 
 
@@ -443,7 +466,7 @@ def vote(room, sender, args):
 
     if vote_text:
         room.add_system_message(
-            f"Vote in progress, use /voteyes or /voteno for <b>{vote_text}</b>"
+            f"Vote in progress, use /voteYES or /voteNO for <b>{vote_text}</b>"
         )
         return
 
@@ -458,23 +481,29 @@ def vote(room, sender, args):
         vote_count = {}
         vote_timer = None
 
+    if not args or len(args.strip()) == 0:
+        room.add_system_message(
+            f"No vote in progress. Need to know what you want to vote on! Start with /vote [text]"
+        )
+        return
+
     vote_text = args
     vote_timer = Timer(VOTE_TIMEOUT_S, vote_done)
     vote_timer.start()
 
-    session.pop("hasvoted", None)
+    session.pop("hasvoted")
 
     room.add_system_message(
-        f"{sender} started a vote! Use /voteyes or /voteno to weigh in. Results shown in <b>1 hour</b>"
+        f"{sender} started a vote! Use /voteYES or /voteNO to weigh in. Results shown in <b>{VOTE_TIMEOUT_S//60} minutes</b>"
     )
 
 
-@command("voteyes")
+@command("voteYES")
 def voteyes(room, sender, args):
     _vote(room, sender, "yes")
 
 
-@command("voteno")
+@command("voteNO")
 def voteno(room, sender, args):
     _vote(room, sender, "no")
 
@@ -490,7 +519,7 @@ def _vote(room, sender, vote):
 
     if session.get("hasvoted"):
         room.add_system_message(
-            f"{sender} tried to vote again, but already has! Sketchy..."
+            f"{sender} tried to vote again, but already has! <small>(sketchy...)</small>"
         )
         return
 
@@ -533,9 +562,9 @@ def highfive(room, sender, args):
         high_five_timer.start()
 
 
-@command("stoic")
-def stoic(room, sender, args):
-    if not check_limit(room, "stoic", 20):
+@command("quote")
+def quote(room, sender, args):
+    if not check_limit(room, "quote", 20):
         return
 
     def fetch():
@@ -564,7 +593,7 @@ def advice(room, sender, args):
         advice = data.get("slip", {}).get("advice")
 
         if advice:
-            room.add_system_message(f"Here's some advice: <b>{advice}</b>")
+            room.add_system_message(f"Advice: <b>{advice}</b>")
 
     Thread(target=fetch).start()
 
@@ -583,7 +612,7 @@ def dog(room, sender, args):
 
         if image:
             room.add_system_message(
-                f"<img src='{image}' class='api-image' height='480' alt='Random picture of a dog'>"
+                f"<img src='{image}' class='api-image' alt='Random picture of a dog'>"
             )
 
     Thread(target=fetch).start()

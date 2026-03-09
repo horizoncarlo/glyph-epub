@@ -70,8 +70,9 @@ button {
 }
 
 .api-image {
+  width: 100%;
   max-width: 640px;
-  height: 480px;
+  max-height: 480px;
 }
 
 /* Short hand (as it's in a repeating message table) for "text cell" */

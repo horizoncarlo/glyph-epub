@@ -1,24 +1,52 @@
+import random
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from typing import Dict, Set
 
 from commands import COMMANDS
 from util import format_date_with_ordinal
 
 
 class Room:
+    join_messages = [
+        "Legendary {sender} joined the room",
+        "Epic {sender} just arrived",
+        "Cool dude {sender} skateboarded in",
+        "Mighty {sender} has entered",
+        "The one and only {sender} is here",
+        "Champion {sender} joins the fray",
+        "Awesome {sender} made it",
+        "Rockstar {sender} just popped in",
+        "Heroic {sender} appears mysteriously",
+        "Supreme {sender} has landed",
+        "Fearless {sender} storms the chat",
+        "Brilliant {sender} graces us with their presence",
+        "Savage {sender} just burst through the door",
+        "Ninja {sender} sneaks in",
+        "Wizard {sender} conjures their presence",
+        "Boss {sender} takes the stage",
+        "Trailblazer {sender} enters boldly",
+        "Mastermind {sender} cracks the code of entry",
+        "Slimy {sender} slurps in suspiciously",
+        "Adventurer {sender} embarks on the chat quest",
+    ]
+
     def __init__(self):
         self.maxinput = 150  # Max chat message input
         self.admin_name = "System"
-
-        self.messages = []
         self.created_at = datetime.now()
+        self.messages = []
+
+        # List of who is in the chat, loosely maintained
+        self.clients: Dict[int, Client] = {}
+        self.expire_client_after_min = 5
 
         # Various limits, which are cleared at the start of every new day
         self.limits = defaultdict(int)
 
         # Various banned names - pretty simple to change your name to avoid, mostly just to bug the kids
-        self.banned = set()
+        self.banned: Set[str] = set()
 
         # Add our System messages, but setup our day header so the first human message gets one
         self.last_day = None
@@ -36,6 +64,36 @@ class Room:
         # Reset our limits and banned list at the start of each new day
         self.limits = defaultdict(int)
         self.banned = set()
+
+    # Track an active client (or add them to the room list)
+    def maintain_client_activity(self, client_id, sender):
+        if not client_id:
+            return
+
+        if client_id not in self.clients:
+            if sender != "Unknown":
+                self.add_system_message(
+                    "<span class='system-sender'>JOIN:</span> "
+                    + random.choice(self.join_messages).format(
+                        sender=f"<b>{sender}</b>"
+                    )
+                )
+            self.clients[client_id] = Client(client_id, sender)
+        else:
+            self.clients[client_id].last_active = datetime.now()
+            if sender:
+                self.clients[client_id].sender = sender
+
+    # Check for any expired clients and remove them
+    # Currently this is only done on-demand via the /who (aka who's online) command
+    # This could easily be a scheduled task though
+    def check_client_activity(self):
+        now = datetime.now()
+        for client_id in list(self.clients):
+            if now - self.clients[client_id].last_active > timedelta(
+                minutes=self.expire_client_after_min
+            ):
+                self.clients.pop(client_id)
 
     def add_system_message(self, text):
         self.add_message(self.admin_name, text, is_system=True)
@@ -115,3 +173,10 @@ class Message:
     special: dict = field(
         default_factory=dict
     )  # Extensible special features like is_system, is_day, is_mega, etc.
+
+
+@dataclass
+class Client:
+    client_id: int
+    sender: str
+    last_active: datetime = field(default_factory=datetime.now)

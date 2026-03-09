@@ -1,10 +1,18 @@
 import json
 import os
+import secrets
+import string
 import urllib.request
 
 
 def get_base_api():
     return "/api"
+
+
+def generate_client_id():
+    return "".join(
+        secrets.choice(string.ascii_letters + string.digits) for _ in range(6)
+    )  # 6 characters long
 
 
 # Get friendly suffix for dates like "13th" and "1st"
