@@ -17,7 +17,7 @@ CALC_OPS = {
     ast.Div: op.truediv,
     ast.USub: op.neg,
 }
-HIGH_FIVE_TIMEOUT_S = 30
+HIGH_FIVE_TIMEOUT_S = 60
 VOTE_TIMEOUT_S = 60 * 60  # 1 hour
 
 pong_count = 0
