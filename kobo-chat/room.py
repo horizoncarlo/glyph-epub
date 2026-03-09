@@ -1,4 +1,5 @@
 import random
+import threading
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -37,6 +38,9 @@ class Room:
         self.admin_name = "System"
         self.created_at = datetime.now()
         self.messages = []
+
+        # Threading condition we can notify to trigger SSE, instead of a while loop with a sleep
+        self.perform_sse = threading.Condition()
 
         # List of who is in the chat, loosely maintained
         self.clients: Dict[int, Client] = {}
@@ -163,6 +167,9 @@ class Room:
                 return
 
         self.messages.append(message)
+
+        with self.perform_sse:
+            self.perform_sse.notify_all()
 
 
 @dataclass

@@ -1,0 +1,25 @@
+<tr>
+  <td class="dc">
+    {% if message.sender %}
+      {{ message.timestamp.strftime("%H:%M") if message.timestamp }}
+    {% endif %}
+  </td>
+  <td class="{{ 'system-sender' if message.sender and message.sender == admin_name }}">
+    {% if message.sender %}
+      {{ message.sender }}:
+    {% endif %}
+  </td>
+  <td class="tc">
+    {% if not message.special.get("is_day") %}
+      {% if message.special.get("is_mega") %}
+        <span style="font-size: x-large;">{{message.text}}</span>
+      {% elif message.special.get("is_system") or message.special.get("is_safe") %}
+          {{ message.text | safe }}
+      {% else %}
+        {{ message.text }}
+      {% endif %}
+    {% else %}
+      <div class="day">{{ message.text }}</div>
+    {% endif %}
+  </td>
+</tr>

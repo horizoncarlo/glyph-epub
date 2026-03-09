@@ -1,8 +1,10 @@
 import html
 import os
 import secrets
+import time
 
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import (Flask, Response, redirect, render_template, request,
+                   session, stream_with_context, url_for)
 
 from room import Room
 from util import generate_client_id, get_base_api
@@ -44,6 +46,42 @@ def main(all_message=False):
 @app.route("/all")
 def all():
     return main(all_message=True)
+
+
+@app.route(get_base_api() + "/chat/stream")
+def chat_stream():
+    last_index = len(room.messages)
+
+    def event_stream():
+        nonlocal last_index
+
+        yield ": connected\n\n"
+
+        while True:
+            with room.perform_sse:
+                room.perform_sse.wait()
+
+            while last_index < len(room.messages):
+                message = room.messages[last_index]
+                last_index += 1
+
+                row = render_template(
+                    "includes/chat_row.html",
+                    message=message,
+                    admin_name=room.admin_name,
+                ).replace("\n", "")
+
+                yield f"data: {row}\n\n"
+
+    return Response(
+        stream_with_context(event_stream()),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # For Nginx to send right away
+        },
+    )
 
 
 @app.post(get_base_api() + "/chat/send")
