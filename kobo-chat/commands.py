@@ -28,6 +28,8 @@ vote_text = None
 vote_count = {}
 vote_timer = None
 
+beer_bottle_count = 100  # 99 bottles of the beer on the wall...
+
 
 def command(name, silent=True):
     def decorator(func):
@@ -142,6 +144,27 @@ def italic(room, sender, args):
 @command("u")
 def underline(room, sender, args):
     room.add_message(sender, f"<u>{html.escape(args)}</u>", is_safe=True)
+
+
+@command("beer")
+def beer(room, sender, args):
+    global beer_bottle_count
+    beer_bottle_count -= 1
+    bottle_text = f"bottle{'s' if beer_bottle_count != 1 else ''}"
+
+    if beer_bottle_count > 0:
+        room.add_message(
+            sender,
+            f"{beer_bottle_count}&nbsp;{bottle_text} of beer on the wall,<br/>{beer_bottle_count}&nbsp;{bottle_text} of beer!<br/>Take one down, pass it around,<br/>{beer_bottle_count-1} bottle{'s' if beer_bottle_count-1 != 1 else ''} of beer on the wall.",
+            is_safe=True,
+        )
+    else:
+        beer_bottle_count = 99
+        room.add_message(
+            sender,
+            f"<b>No</b> more bottles of beer on the wall,<br/>no more bottles of beer.<br/>Go to the store and buy some more,<p style='font-size: xx-large; font-weight: bold;'>Everyone is arrested for underage drinking</p><br/>{beer_bottle_count} bottles of beer on the wall...",
+            is_safe=True,
+        )
 
 
 @command("html")
