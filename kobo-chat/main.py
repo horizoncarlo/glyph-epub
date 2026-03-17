@@ -1,7 +1,6 @@
 import html
 import os
 import secrets
-import time
 
 from flask import (Flask, Response, redirect, render_template, request,
                    session, stream_with_context, url_for)
@@ -11,6 +10,10 @@ from util import generate_client_id, get_base_api
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("GLYPH_SECRET_KEY") or secrets.token_hex(8)
+app.jinja_env.optimized = True
+app.jinja_env.trim_blocks = True
+app.jinja_env.lstrip_blocks = True
+app.jinja_env.auto_reload = False
 
 room = Room()
 

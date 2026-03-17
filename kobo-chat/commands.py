@@ -32,7 +32,7 @@ vote_timer = None
 def command(name, silent=True):
     def decorator(func):
         func._silent = silent
-        COMMANDS[name] = func
+        COMMANDS[name.lower()] = func
         return func
 
     return decorator
@@ -491,7 +491,7 @@ def vote(room, sender, args):
     vote_timer = Timer(VOTE_TIMEOUT_S, vote_done)
     vote_timer.start()
 
-    session.pop("hasvoted")
+    session.pop("hasvoted", None)
 
     room.add_system_message(
         f"{sender} started a vote! Use /voteYES or /voteNO to weigh in. Results shown in <b>{VOTE_TIMEOUT_S//60} minutes</b>"
@@ -613,6 +613,29 @@ def dog(room, sender, args):
         if image:
             room.add_system_message(
                 f"<img src='{image}' class='api-image' alt='Random picture of a dog'>"
+            )
+
+    Thread(target=fetch).start()
+
+
+@command("capy")
+def capy(room, sender, args):
+    if not check_limit(room, "capy", 20):
+        return
+
+    def fetch():
+        data = fetch_public_api(
+            room,
+            sender,
+            "capybara picture",
+            "https://api.capy.lol/v1/capybara?json=true",
+        )
+
+        image = data.get("data", {}).get("url")
+
+        if image:
+            room.add_system_message(
+                f"<img src='{image}' class='api-image' alt='Random picture of a capybara'>"
             )
 
     Thread(target=fetch).start()

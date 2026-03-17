@@ -14,7 +14,7 @@
       {% if message.special.get("is_mega") %}
         <span style="font-size: x-large;">{{message.text}}</span>
       {% elif message.special.get("is_system") or message.special.get("is_safe") %}
-          {{ message.text | safe }}
+        {{ message.text | safe }}
       {% else %}
         {{ message.text }}
       {% endif %}

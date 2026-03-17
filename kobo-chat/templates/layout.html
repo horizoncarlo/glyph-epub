@@ -12,10 +12,42 @@
     <script>
       const LS_THEME = "theme";
       let newMessageCount = 0;
+      let lastVisibilityRefresh = performance.now();
       
       window.onfocus = () => {
         updateTitleMessageCount(0, true);
       }
+      
+      window.addEventListener('visibilitychange', () => {
+        // Throttle to 10 seconds between refreshes
+        if (document.visibilityState === 'visible' &&
+            performance.now() - lastVisibilityRefresh > 10*1000) {
+          lastVisibilityRefresh = performance.now();
+          
+          setTimeout(() => { // Let the page settle first before refreshing, to prevent browser flicker on some mobile devices
+            window.location.reload();
+          });
+        }
+      });
+      
+      // {# Right now the /beep doesn't actually use this JS, but it's useful for the future
+      // function playBeep(frequency = 600, duration = 200, volume = 0.5) {
+      //   // Mostly copied from online, but play a fairly low-level sounding beep
+      //   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      //   const oscillator = audioCtx.createOscillator();
+      //   const gainNode = audioCtx.createGain();
+      //   oscillator.frequency.value = frequency;
+      //   oscillator.type = "sine";
+      //   gainNode.gain.value = volume;
+      //   oscillator.connect(gainNode);
+      //   gainNode.connect(audioCtx.destination);
+      //   oscillator.start();
+      //   setTimeout(() => {
+      //       oscillator.stop();
+      //       audioCtx.close();
+      //   }, duration);
+      // }
+      // #}
       
       function toggleThemeMode() {
         document.body.classList.toggle("theme-light");
@@ -63,25 +95,6 @@
         }
         
         return color;
-      }
-
-      function playBeep(frequency = 600, duration = 200, volume = 0.5) {
-        // Mostly copied from online, but play a fairly low-level sounding beep
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-
-        oscillator.frequency.value = frequency;
-        oscillator.type = "sine";
-        gainNode.gain.value = volume;
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        oscillator.start();
-
-        setTimeout(() => {
-            oscillator.stop();
-            audioCtx.close();
-        }, duration);
       }
     </script>
     
