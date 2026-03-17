@@ -641,6 +641,26 @@ def dog(room, sender, args):
     Thread(target=fetch).start()
 
 
+@command("cat")
+def cat(room, sender, args):
+    if not check_limit(room, "cat", 20):
+        return
+
+    def fetch():
+        data = fetch_public_api(
+            room, sender, "cat picture", "https://cataas.com/cat?json=true"
+        )
+
+        image = data.get("url", {})
+
+        if image:
+            room.add_system_message(
+                f"<img src='{image}' class='api-image' alt='Random picture of a cat'>"
+            )
+
+    Thread(target=fetch).start()
+
+
 @command("capy")
 def capy(room, sender, args):
     if not check_limit(room, "capy", 20):
