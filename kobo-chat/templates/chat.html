@@ -73,6 +73,10 @@
     source.onmessage = function(event) {
       if (event?.data) {
         document.querySelector("tbody")?.insertAdjacentHTML("beforeend", event.data);
+        
+        if (!document.hasFocus()) {
+          updateTitleMessageCount(1);
+        }
       }
     };
     
