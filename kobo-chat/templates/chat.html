@@ -5,7 +5,7 @@
 {% block content %}
   <form method="post" action="{{ api }}/chat/send">
     <input type="hidden" id="sender" name="sender" value="{{ sender }}">
-    <button type="button" onclick="toggleThemeMode()">Theme</button>
+    <button type="button" onclick="toggleThemeMode()" tabindex="-1">Theme</button>
     
     <hr/>
     
@@ -16,13 +16,15 @@
     </table>
     
     <center>
-      <input type="text" id="text" name="text" maxlength="{{maxinput}}"
-             spellcheck="true" autofocus="true"
-             onkeydown="chatDoKey(event)" onchange="saveChat(this)">
-      
-      <button type="submit">Send</button>
-      &nbsp;|&nbsp;
-      <button type="reset" onclick="window.location.reload()">Refresh</button>
+      <div class="chat-in">
+          <input type="text" id="text" name="text" maxlength="{{maxinput}}"
+                spellcheck="true" autofocus="true"
+                onkeydown="chatDoKey(event)" onchange="saveChat(this)">
+          
+          <button type="submit">Send</button>
+          &nbsp;|&nbsp;
+          <button type="reset" onclick="window.location.reload()">Refresh</button>
+      </div>
     </center>
   </form>
 {% endblock %}
@@ -31,6 +33,10 @@
 <script>
   const LS_SENDER = 'sender';
   const LS_TEXT = 'text';
+  
+  function bottomScroll() {
+    window.scrollTo(0, document.documentElement.scrollHeight);
+  }
   
   function chatDoKey(event) {
     if (event.key === 'ArrowUp' && document.getElementById('sender')) {
@@ -65,7 +71,9 @@
       saveSender(sender);
     }
   }
+  
   getSender();
+  bottomScroll();
   
   if (window.EventSource) {
     const source = new EventSource("{{ api }}/chat/stream");
@@ -76,6 +84,9 @@
         
         if (!document.hasFocus()) {
           updateTitleMessageCount(1);
+        }
+        else {
+          bottomScroll();
         }
       }
     };

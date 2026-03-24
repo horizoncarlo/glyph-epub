@@ -186,6 +186,11 @@ def html_command(room, sender, args):
     )
 
 
+@command("barrel")
+def barrel(room, sender, args):
+    room.start_barrel(sender)
+
+
 @command("beep")
 def beep(room, sender, args):
     # if not check_limit(room, "beep", 50):
@@ -623,7 +628,7 @@ def advice(room, sender, args):
 
 @command("dog")
 def dog(room, sender, args):
-    if not check_limit(room, "dog", 20):
+    if not check_limit(room, "dog", 5):
         return
 
     def fetch():
@@ -643,7 +648,7 @@ def dog(room, sender, args):
 
 @command("cat")
 def cat(room, sender, args):
-    if not check_limit(room, "cat", 20):
+    if not check_limit(room, "cat", 5):
         return
 
     def fetch():
@@ -663,7 +668,7 @@ def cat(room, sender, args):
 
 @command("capy")
 def capy(room, sender, args):
-    if not check_limit(room, "capy", 20):
+    if not check_limit(room, "capy", 5):
         return
 
     def fetch():
@@ -686,7 +691,7 @@ def capy(room, sender, args):
 
 @command("joke")
 def joke(room, sender, args):
-    if not check_limit(room, "joke", 30):
+    if not check_limit(room, "joke", 20):
         return
 
     def fetch():
@@ -702,7 +707,7 @@ def joke(room, sender, args):
 
 @command("weather")
 def weather(room, sender, args):
-    if not check_limit(room, "weather", 50):
+    if not check_limit(room, "weather", 30):
         return
 
     def fetch():

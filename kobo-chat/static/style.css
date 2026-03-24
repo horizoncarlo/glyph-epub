@@ -1,8 +1,18 @@
-body {
+html {
   overflow-y: scroll;
+}
+
+body {
   font-family: monospace;
+}
+
+.content {
+  margin-bottom: 45px;
+}
+
+.content.is-kobo {
   /* Magic number that works best on Kobo Clara in 2026 to have the keyboard right under the input*/
-  margin-bottom: 53%;
+  margin-bottom: 55%;
 }
 
 .theme-dark, .theme-dark a, .theme-dark a:visited {
@@ -39,6 +49,12 @@ button {
   border-radius: 10px;
 }
 
+.content:not(.is-kobo) .chat-in {
+  width: 100%;
+  position: fixed;
+  bottom: 10px;
+}
+
 .theme-dark .system-sender {
   color: lightblue;
   font-weight: bold;
@@ -50,6 +66,7 @@ button {
 }
 
 .day {
+  width: 100%;
   padding: 5px;
   border: 2px dotted green;
   border-radius: 10px;
@@ -67,6 +84,11 @@ button {
   font-size: xx-large;
   font-weight: bold;
   text-shadow: 0 0 10px plum;
+}
+
+.exploding-barrel {
+  width: 120px;
+  height: 120px;
 }
 
 .api-image {

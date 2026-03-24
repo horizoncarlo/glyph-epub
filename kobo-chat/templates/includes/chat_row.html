@@ -9,17 +9,13 @@
       {{ message.sender }}:
     {% endif %}
   </td>
-  <td class="tc">
-    {% if not message.special.get("is_day") %}
-      {% if message.special.get("is_mega") %}
-        <span style="font-size: x-large;">{{message.text}}</span>
-      {% elif message.special.get("is_system") or message.special.get("is_safe") %}
-        {{ message.text | safe }}
-      {% else %}
-        {{ message.text }}
-      {% endif %}
+  <td class="tc {{ 'day' if message.special.get('is_day') }}">
+    {% if message.special.get("is_mega") %}
+      <span style="font-size: x-large;">{{message.text}}</span>
+    {% elif message.special.get("is_system") or message.special.get("is_safe") %}
+      {{ message.text | safe }}
     {% else %}
-      <div class="day">{{ message.text }}</div>
+      {{ message.text }}
     {% endif %}
   </td>
 </tr>

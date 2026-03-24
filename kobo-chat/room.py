@@ -52,6 +52,9 @@ class Room:
         # Various banned names - pretty simple to change your name to avoid, mostly just to bug the kids
         self.banned: Set[str] = set()
 
+        # Barrels for the /barrel command, to help determine when they explode
+        self.barrels: list[Barrel] = []
+
         # Add our System messages, but setup our day header so the first human message gets one
         self.last_day = None
         self.add_system_message("Welcome to the chat room!")
@@ -98,6 +101,13 @@ class Room:
                 minutes=self.expire_client_after_min
             ):
                 self.clients.pop(client_id)
+
+    def start_barrel(self, sender):
+        explode_in = random.randint(3, 12)
+        self.add_system_message(
+            f"{sender} lit a barrel that will EXPLODE in <b>{explode_in}</b> messages"
+        )
+        self.barrels.append(Barrel(sender, explode_in))
 
     def add_system_message(self, text):
         self.add_message(self.admin_name, text, is_system=True)
@@ -168,6 +178,27 @@ class Room:
 
         self.messages.append(message)
 
+        # Handle the /barrel command
+        if self.barrels:
+            barrel_senders: Set[str] = set()
+
+            for barrel in self.barrels[
+                :
+            ]:  # Iterate over a copy since we'll modify the list
+                barrel.explode_in -= 1
+                if barrel.explode_in <= 0:
+                    barrel_senders.add(barrel.sender)
+                    self.barrels.remove(barrel)
+
+            # Go through our set so that any overlapping explosions aren't duplicated
+            if barrel_senders:
+                for sender in barrel_senders:
+                    self.add_message(
+                        sender,
+                        f"&nbsp;&nbsp;K&nbsp;A&nbsp;B&nbsp;O&nbsp;O&nbsp;M<br/><img src='./static/images/exploding-barrel.jpg' alt='Exploding Barrel' width='120' height='120' class='exploding-barrel'><br/>&nbsp;&nbsp;K&nbsp;A&nbsp;B&nbsp;O&nbsp;O&nbsp;M",
+                        is_safe=True,
+                    )
+
         with self.perform_sse:
             self.perform_sse.notify_all()
 
@@ -187,3 +218,9 @@ class Client:
     client_id: int
     sender: str
     last_active: datetime = field(default_factory=datetime.now)
+
+
+@dataclass
+class Barrel:
+    sender: str
+    explode_in: int

@@ -101,7 +101,7 @@
     {% block header %}{% endblock %}
   </head>
   <body class="{{ theme }}">
-    <section class="content">
+    <section class="content{{ ' is-kobo' if is_kobo }}">
       {% block content %}{% endblock %}
     </section>
     

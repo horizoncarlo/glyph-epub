@@ -35,6 +35,11 @@ def main(all_message=False):
     # Maintain that this client is active
     room.maintain_client_activity(session["client_id"], sender)
 
+    # Determine if we're coming from a Kobo Clara browser, which has some different format and CSS/JS limitations
+    is_kobo = (
+        "kobo" in (request.user_agent or request.headers.get("User-Agent", "")).lower()
+    )
+
     return render_template(
         "chat.html",
         api=get_base_api(),
@@ -43,6 +48,7 @@ def main(all_message=False):
         maxinput=room.maxinput,
         admin_name=room.admin_name,
         theme="theme-light",
+        is_kobo=is_kobo,
     )
 
 
