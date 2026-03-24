@@ -5,9 +5,10 @@ import random
 from datetime import datetime
 from threading import Thread, Timer
 
-from flask import session
+from flask import request, session
 
-from util import check_limit, check_unsafe_pass, fetch_public_api
+from util import (check_limit, check_unsafe_pass, fetch_public_api,
+                  send_phone_notification)
 
 COMMANDS = {}
 CALC_OPS = {
@@ -394,6 +395,18 @@ def ban(room, sender, args):
     if args not in room.banned:
         room.banned.add(args)
         room.add_system_message(f"{sender} BANNED {html.escape(args)} (╯︵╰,)")
+
+
+@command("alert")
+def alert(room, sender, args):
+    message = f"{sender} - Alert requested"
+
+    if args:
+        message = f"{sender} - {args}"
+
+    room.add_system_message(f"Alert sent to phone(s): <b>{message}</b>")
+
+    send_phone_notification(room, message, request.host_url)
 
 
 @command("name")

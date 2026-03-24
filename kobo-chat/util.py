@@ -4,6 +4,8 @@ import secrets
 import string
 import urllib.request
 
+PHONE_NOTIFICATION_TOPIC = os.environ.get("GLYPH_NTFY_TOPIC")
+
 
 def get_base_api():
     return "/api"
@@ -49,6 +51,34 @@ def fetch_public_api(room, sender, type_prefix, url, headers={}):
 
     room.add_system_message(f"Failed to get {type_prefix} :(")
     return {}
+
+
+def send_phone_notification(room, message, return_url):
+    if not PHONE_NOTIFICATION_TOPIC:
+        room.add_system_message(
+            "<span class='error'>Command failed</span>, contact me to setup the notification integration properly"
+        )
+        return False
+
+    url = f"https://ntfy.sh/{PHONE_NOTIFICATION_TOPIC}"
+
+    data = message.encode("utf-8")
+    req = urllib.request.Request(url, data=data, method="POST")
+
+    req.add_header("Title", "Glyph Chat")
+    req.add_header("Tags", "speaking_head")
+    if return_url:
+        req.add_header("Actions", f"view, Open Chat, {return_url}")
+
+    try:
+        with urllib.request.urlopen(req) as response:
+            return response.getcode() == 200
+    except Exception as e:
+        room.add_system_message(
+            f"<span class='error'>Failed to send alert message</span>"
+        )
+        print(f"Error sending alert phone notification: {e}")
+        return False
 
 
 def check_limit(room, limited_command_name, limit_cap):
