@@ -666,10 +666,11 @@ def cat(room, sender, args):
 
     def fetch():
         data = fetch_public_api(
-            room, sender, "cat picture", "https://cataas.com/cat?json=true"
+            room, sender, "cat picture", "https://api.thecatapi.com/v1/images/search"
         )
 
-        image = data.get("url", {})
+        if data:
+          image = data[0].get("url", {})
 
         if image:
             room.add_system_message(
