@@ -641,7 +641,7 @@ def advice(room, sender, args):
 
 @command("dog")
 def dog(room, sender, args):
-    if not check_limit(room, "dog", 5):
+    if not check_limit(room, "dog", 10):
         return
 
     def fetch():
@@ -661,7 +661,7 @@ def dog(room, sender, args):
 
 @command("cat")
 def cat(room, sender, args):
-    if not check_limit(room, "cat", 5):
+    if not check_limit(room, "cat", 10):
         return
 
     def fetch():
@@ -670,7 +670,7 @@ def cat(room, sender, args):
         )
 
         if data:
-          image = data[0].get("url", {})
+            image = data[0].get("url", {})
 
         if image:
             room.add_system_message(
@@ -682,7 +682,7 @@ def cat(room, sender, args):
 
 @command("capy")
 def capy(room, sender, args):
-    if not check_limit(room, "capy", 5):
+    if not check_limit(room, "capy", 10):
         return
 
     def fetch():
@@ -698,6 +698,51 @@ def capy(room, sender, args):
         if image:
             room.add_system_message(
                 f"<img src='{image}' class='api-image' alt='Random picture of a capybara'>"
+            )
+
+    Thread(target=fetch).start()
+
+
+@command("duck")
+def duck(room, sender, args):
+    if not check_limit(room, "duck", 10):
+        return
+
+    def fetch():
+        data = fetch_public_api(
+            room,
+            sender,
+            "duck picture",
+            "https://random-d.uk/api/v2/random?json=true&type=jpg",
+        )
+
+        if data:
+            image = data.get("url", {})
+
+        if image:
+            room.add_system_message(
+                f"<img src='{image}' class='api-image' alt='Random picture of a duck'>"
+            )
+
+    Thread(target=fetch).start()
+
+
+@command("fox")
+def fox(room, sender, args):
+    if not check_limit(room, "fox", 10):
+        return
+
+    def fetch():
+        data = fetch_public_api(
+            room, sender, "fox picture", "https://randomfox.ca/floof/"
+        )
+
+        if data:
+            image = data.get("image", {})
+
+        if image:
+            room.add_system_message(
+                f"<img src='{image}' class='api-image' alt='Random picture of a fox'>"
             )
 
     Thread(target=fetch).start()
