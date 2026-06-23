@@ -15,10 +15,12 @@ app.jinja_env.trim_blocks = True
 app.jinja_env.lstrip_blocks = True
 app.jinja_env.auto_reload = False
 
+ENABLE_FLASK_DEBUG = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+
 room = Room()
 
 if __name__ == "__main__":
-    app.run(debug=True, threaded=True)
+    app.run(debug=ENABLE_FLASK_DEBUG, threaded=True)
 
 
 @app.before_request

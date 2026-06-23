@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Set these params locally on your deploy
+# Set unique secret values for actual Production deployment
 export GLYPH_PASS_UNSAFE=
 export GLYPH_SECRET_KEY=
 export GLYPH_NTFY_TOPIC=

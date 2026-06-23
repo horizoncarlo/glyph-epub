@@ -7,4 +7,7 @@ export GLYPH_SECRET_KEY=forGithub
 # Integration with ntfy for sending to phone(s)
 export GLYPH_NTFY_TOPIC=
 
+# Whether we debug Flask internally or not
+ENABLE_FLASH_DEBUG=true
+
 flask --app main.py run --debug -p 4646 --host=0.0.0.0 $@
