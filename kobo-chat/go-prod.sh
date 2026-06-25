@@ -7,5 +7,6 @@ export GLYPH_NTFY_TOPIC=
 
 source .venv/bin/activate
 #screen -d -m -S glyphchat sh -c "flask --app main.py run -p 4646 --host=0.0.0.0 $@"
-screen -d -m -S glyphchat sh -c "bash go-gunicorn.sh $@"
-screen -r
+#screen -d -m -S glyphchat sh -c "bash go-gunicorn.sh $@"
+#screen -r
+pm2 start go-gunicorn.sh --name "glyphchat"
