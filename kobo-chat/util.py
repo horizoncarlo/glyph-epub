@@ -53,6 +53,31 @@ def fetch_public_api(room, sender, type_prefix, url, headers={}):
     return {}
 
 
+def get_airquality_label(aqi):
+    if aqi is None:
+        return "Unknown"
+
+    try:
+        aqi = float(aqi)
+    except (TypeError, ValueError):
+        return "Invalid"
+
+    if aqi < 0:
+        return "Invalid"
+    if aqi <= 50:
+        return "Good"
+    if aqi <= 100:
+        return "Moderate"
+    if aqi <= 150:
+        return "Unhealthy for Sensitive Groups"
+    if aqi <= 200:
+        return "Unhealthy"
+    if aqi <= 300:
+        return "Very Unhealthy"
+
+    return "Hazardous"
+
+
 def send_phone_notification(room, message, return_url):
     if not PHONE_NOTIFICATION_TOPIC:
         room.add_system_message(

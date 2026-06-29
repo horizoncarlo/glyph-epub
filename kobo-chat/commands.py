@@ -1,6 +1,7 @@
 import ast
 import html
 import operator as op
+import os
 import random
 from datetime import datetime
 from threading import Thread, Timer
@@ -8,7 +9,7 @@ from threading import Thread, Timer
 from flask import request, session
 
 from util import (check_limit, check_unsafe_pass, fetch_public_api,
-                  send_phone_notification)
+                  get_airquality_label, send_phone_notification)
 
 COMMANDS = {}
 CALC_OPS = {
@@ -760,6 +761,44 @@ def joke(room, sender, args):
 
         if joke:
             room.add_system_message(f"Joke: <b>{joke}</b>")
+
+    Thread(target=fetch).start()
+
+
+@command("air")
+def air(room, sender, args):
+    air_token = os.environ.get("GLYPH_AQICN_AUTH_TOKEN")
+    air_station = os.environ.get("GLYPH_AQICN_STATION_ID")
+
+    if not air_token and not air_station:
+        room.add_system_message(
+            "<span class='error'>Command failed</span>, contact me to setup the air quality check properly"
+        )
+        return
+
+    if not check_limit(room, "air", 100):
+        return
+
+    def fetch():
+        data = fetch_public_api(
+            room,
+            sender,
+            "air quality",
+            f"https://api.waqi.info/feed/@{air_station}/?token={air_token}",
+        )
+
+        airquality = data.get("data", {}).get("aqi")
+
+        if airquality:
+            airtime = datetime.fromisoformat(
+                data.get("data", {})
+                .get("time", {})
+                .get("iso", datetime.now().isoformat())
+            )
+
+            room.add_system_message(
+                f"Current air quality is <b>{airquality}</b> ({get_airquality_label(airquality)}) updated at {airtime.strftime('%c')}"
+            )
 
     Thread(target=fetch).start()
 
