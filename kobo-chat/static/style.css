@@ -1,3 +1,7 @@
+:root {
+  color-scheme: light dark;
+}
+
 html {
   overflow-y: scroll;
 }
@@ -15,24 +19,14 @@ body {
   margin-bottom: 55%;
 }
 
-.theme-dark, .theme-dark a, .theme-dark a:visited {
-  background-color: #333333;
-  color: white;
+body, a, a:visited {
+  background-color: light-dark(#FEFEFE, #333333);
+  color: light-dark(#111111, white);
 }
 
-.theme-light, .theme-light a, .theme-light a:visited {
-  background-color: #FEFEFE;
-  color: #111111;
-}
-
-.theme-dark input[type="text"] {
-  background-color: black;
-  color: white;
-}
-
-.theme-light input[type="text"] {
-  background-color: #BBBBBB;
-  color: black;
+input[type="text"] {
+  background-color: light-dark(#BBBBBB, black);
+  color: light-dark(black, white);
 }
 
 input[type="text"] {
@@ -55,13 +49,8 @@ button {
   bottom: 10px;
 }
 
-.theme-dark .system-sender {
-  color: lightblue;
-  font-weight: bold;
-}
-
-.theme-light .system-sender {
-  color: navy;
+.system-sender {
+  color: light-dark(navy, lightblue);
   font-weight: bold;
 }
 

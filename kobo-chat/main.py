@@ -49,7 +49,6 @@ def main(all_message=False):
         sender=sender,
         maxinput=room.maxinput,
         admin_name=room.admin_name,
-        theme="theme-light",
         is_kobo=is_kobo,
     )
 

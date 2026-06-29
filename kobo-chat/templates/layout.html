@@ -50,23 +50,33 @@
       // #}
       
       function toggleThemeMode() {
-        document.body.classList.toggle("theme-light");
-        document.body.classList.toggle("theme-dark");
+        let current = document.documentElement.style.colorScheme;
+        if (current !== 'light' && current !== 'dark') {
+          current = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
         
+        const next = current.includes("dark") && !current.includes("light")
+          ? "light"
+          : "dark";
+
+        document.documentElement.style.colorScheme = next;
+
         saveTheme();
       }
       
       function saveTheme() {
-        const isDark = document.body.classList.contains("theme-dark");
-        localStorage.setItem(LS_THEME, isDark ? "theme-dark" : "theme-light");
-      }
+        const theme = document.documentElement.style.colorScheme;
 
+        if (theme === "light" || theme === "dark") {
+          localStorage.setItem(LS_THEME, theme);
+        }
+      }
+      
       function getTheme() {
-        if (localStorage.getItem(LS_THEME)?.trim().length) {
-          const theme = localStorage.getItem(LS_THEME);
-          if (theme && theme.trim().length) {
-            document.body.classList = [theme];
-          }
+        const theme = localStorage.getItem(LS_THEME)?.trim();
+
+        if (theme === "light" || theme === "dark") {
+          document.documentElement.style.colorScheme = theme;
         }
       }
       
@@ -100,7 +110,7 @@
     
     {% block header %}{% endblock %}
   </head>
-  <body class="{{ theme }}">
+  <body>
     <section class="content{{ ' is-kobo' if is_kobo }}">
       {% block content %}{% endblock %}
     </section>
