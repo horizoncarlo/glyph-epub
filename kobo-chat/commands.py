@@ -797,7 +797,7 @@ def air(room, sender, args):
             )
 
             room.add_system_message(
-                f"Current air quality is <b>{airquality}</b> ({get_airquality_label(airquality)}) updated at {airtime.strftime('%c')}"
+                f"Current air quality is <b>{airquality}</b> (<a href='https://www.airnow.gov/aqi/aqi-basics/' target='_blank'>{get_airquality_label(airquality)}</a>) updated at {airtime.strftime('%c')}"
             )
 
     Thread(target=fetch).start()

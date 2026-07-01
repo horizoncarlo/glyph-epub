@@ -18,4 +18,5 @@ export ENABLE_FLASH_DEBUG=true
 export GLYPH_AQICN_AUTH_TOKEN=
 export GLYPH_AQICN_STATION_ID=
 
+source .venv/bin/activate
 flask --app main.py run --debug -p 4646 --host=0.0.0.0 $@
